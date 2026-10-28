@@ -9,10 +9,8 @@ Dit is de procesblog van onze bachelorproef aan **Devine** (academiejaar 2026–
 
 Elke post heeft tags. Zo kan je snel filteren:
 
-| Soort tag | Tags |
-| --- | --- |
-| Pijler | `UX`, `DESIGN`, `DEV`, `ALGEMEEN` |
-| Soort post | `dagboek`, `research`, `proces`, `feedback`, `learning`, `ai`, `planning` |
+- **Pijler:** UX, DESIGN, DEV, ALGEMEEN
+- **Soort post:** dagboek, research, proces, feedback, learning, ai, planning
 
 - [Alle tags](/BAP-BLOG/tags/)
 - [Planning en deadlines](/BAP-BLOG/planning/)

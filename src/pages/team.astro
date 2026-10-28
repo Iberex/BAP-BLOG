@@ -1,0 +1,23 @@
+---
+import AboutLayout from "@layouts/AboutLayout.astro";
+import team from "../data/team.json";
+---
+
+<AboutLayout frontmatter={{ title: "Team", nav: "team" }}>
+  <table>
+    <thead>
+      <tr><th>Wie</th><th>Rol(len)</th><th>Pijler</th></tr>
+    </thead>
+    <tbody>
+      {
+        team.map(member => (
+          <tr>
+            <td>{member.naam}</td>
+            <td>{member.rol || "nog in te vullen"}</td>
+            <td>{member.pijler}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</AboutLayout>

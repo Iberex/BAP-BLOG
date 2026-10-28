@@ -1,0 +1,15 @@
+---
+import AboutLayout from "@layouts/AboutLayout.astro";
+import planning from "../data/planning.json";
+---
+
+<AboutLayout frontmatter={{ title: "Planning", nav: "planning" }}>
+  <table>
+    <thead>
+      <tr><th>Datum</th><th>Wat</th></tr>
+    </thead>
+    <tbody>
+      {planning.map(row => <tr><td>{row.datum}</td><td>{row.wat}</td></tr>)}
+    </tbody>
+  </table>
+</AboutLayout>

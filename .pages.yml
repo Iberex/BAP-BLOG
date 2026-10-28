@@ -35,33 +35,40 @@ content:
       - { name: featured, label: "Uitgelicht op home", type: boolean, default: false }
       - { name: draft, label: "Concept (nog niet publiceren)", type: boolean, default: false }
       - { name: body, label: Tekst, type: rich-text }
-  - name: planning
-    label: Planning
-    type: file
-    path: src/pages/planning.md
-    fields:
-      - { name: layout, type: string, hidden: true, default: "../layouts/AboutLayout.astro" }
-      - { name: nav, type: string, hidden: true, default: planning }
-      - { name: title, label: Titel, type: string }
-      - { name: body, label: "Inhoud (tabel in Markdown)", type: text }
   - name: uren
     label: Uren
     type: file
-    path: src/pages/uren.md
+    path: src/data/uren.json
+    format: json
+    list: true
     fields:
-      - { name: layout, type: string, hidden: true, default: "../layouts/AboutLayout.astro" }
-      - { name: nav, type: string, hidden: true, default: uren }
-      - { name: title, label: Titel, type: string }
-      - { name: body, label: "Inhoud (tabel in Markdown: voeg onderaan een rij toe per dag)", type: text }
+      - { name: datum, label: Datum, type: date, required: true, options: { format: yyyy-MM-dd } }
+      - { name: ibe, label: "Uren Ibe", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
+      - { name: tjorven, label: "Uren Tjorven", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
+      - { name: senne, label: "Uren Senne", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
+      - { name: wat, label: "Wat deden we?", type: string }
+  - name: planning
+    label: Planning
+    type: file
+    path: src/data/planning.json
+    format: json
+    list: true
+    fields:
+      - { name: datum, label: "Datum (vrije tekst, bv. 'vr 20/11' of '9/11 – 13/11')", type: string, required: true }
+      - { name: wat, label: Wat, type: string, required: true }
   - name: team
     label: Team
     type: file
-    path: src/pages/team.md
+    path: src/data/team.json
+    format: json
+    list: true
     fields:
-      - { name: layout, type: string, hidden: true, default: "../layouts/AboutLayout.astro" }
-      - { name: nav, type: string, hidden: true, default: team }
-      - { name: title, label: Titel, type: string }
-      - { name: body, label: "Inhoud (tabel in Markdown)", type: text }
+      - { name: naam, label: Naam, type: string, required: true }
+      - { name: rol, label: "Rol(len)", type: string }
+      - name: pijler
+        label: Pijler
+        type: select
+        options: { values: [ UX, DESIGN, DEV, ALGEMEEN ] }
   - name: about
     label: Over deze blog
     type: file
@@ -69,4 +76,4 @@ content:
     fields:
       - { name: layout, type: string, hidden: true, default: "../layouts/AboutLayout.astro" }
       - { name: title, label: Titel, type: string }
-      - { name: body, label: Inhoud, type: text }
+      - { name: body, label: Inhoud, type: rich-text, options: { input: public/assets, output: /BAP-BLOG/assets } }

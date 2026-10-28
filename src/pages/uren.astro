@@ -1,0 +1,42 @@
+---
+import AboutLayout from "@layouts/AboutLayout.astro";
+import uren from "../data/uren.json";
+
+const rows = [...uren].sort((a, b) => b.datum.localeCompare(a.datum));
+const total = (key: "ibe" | "tjorven" | "senne") =>
+  uren.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+const date = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("nl-BE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
+---
+
+<AboutLayout frontmatter={{ title: "Uren", nav: "uren" }}>
+  <p>Tijdsregistratie: aantal uren per dag aan de bachelorproef.</p>
+  <table>
+    <thead>
+      <tr><th>Datum</th><th>Ibe</th><th>Tjorven</th><th>Senne</th><th>Wat</th></tr>
+    </thead>
+    <tbody>
+      {
+        rows.map(row => (
+          <tr>
+            <td>{date(row.datum)}</td>
+            <td>{row.ibe}</td>
+            <td>{row.tjorven}</td>
+            <td>{row.senne}</td>
+            <td>{row.wat}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+    <tfoot>
+      <tr>
+        <th>Totaal</th><th>{total("ibe")} u</th><th>{total("tjorven")} u</th><th>{total("senne")} u</th><th></th>
+      </tr>
+    </tfoot>
+  </table>
+</AboutLayout>
