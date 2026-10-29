@@ -72,6 +72,20 @@ async function classify(texts) {
   );
 }
 
+// Busy models answer 429/503 now and then; wait a bit and try again.
+async function withRetry(job) {
+  for (const wait of [5, 20, 60]) {
+    try {
+      return await job();
+    } catch (error) {
+      if (!/^(429|500|503)/.test(error.message)) throw error;
+      console.warn(`tag-paragraphs: busy, retrying in ${wait}s`);
+      await new Promise(resolve => setTimeout(resolve, wait * 1000));
+    }
+  }
+  return job();
+}
+
 const files = readdirSync(BLOG, { recursive: true }).filter(file =>
   String(file).endsWith(".md")
 );
@@ -99,7 +113,7 @@ if (!TOKEN) {
   for (let i = 0; i < list.length; i += 20) {
     const batch = list.slice(i, i + 20);
     try {
-      const tags = await classify(batch);
+      const tags = await withRetry(() => classify(batch));
       batch.forEach((text, j) => (cache[hash(text)] = tags[j]));
       done += batch.length;
     } catch (error) {
