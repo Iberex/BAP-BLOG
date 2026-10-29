@@ -1,7 +1,7 @@
 import { LOCALE } from "@config";
 import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel } from "@utils/pijlers";
-import { fragments } from "@utils/fragments";
+import { SOORTEN } from "@utils/soorten";
 import type { CollectionEntry } from "astro:content";
 
 export interface Props {
@@ -12,17 +12,16 @@ export interface Props {
 
 // One compact row: date, title, pillars and type. No excerpt, so a list stays easy to scan.
 export default function Card({ href, frontmatter, secHeading = true }: Props) {
-  const { title, pubDatetime, pijlers, soort, author } = frontmatter;
+  const { title, pubDatetime, pijlers, soort, author, fragments, onderwerpen } =
+    frontmatter;
   const Heading = secHeading ? "h2" : "h3";
   const date = new Date(pubDatetime);
-  const found = fragments(frontmatter);
-  const tagged = found.flatMap(f => f.tags);
 
   return (
     <li
       className="post-row border-b border-skin-line last:border-b-0"
-      data-pijlers={[...pijlers.map(p => slugifyStr(p)), ...tagged].join(" ")}
-      data-soort={[soort ? slugifyStr(soort) : "", ...tagged].join(" ")}
+      data-pijlers={onderwerpen.join(" ")}
+      data-soort={soort ? slugifyStr(soort) : ""}
     >
       <a
         href={href}
@@ -46,16 +45,20 @@ export default function Card({ href, frontmatter, secHeading = true }: Props) {
           )}
         </Heading>
         <span className="col-start-2 flex flex-wrap gap-1.5 sm:col-start-3 sm:justify-end">
+          {soort && (
+            <span className={`type soort-${slugifyStr(soort)}`}>
+              {SOORTEN[soort]?.label ?? soort}
+            </span>
+          )}
           {pijlers.map(p => (
             <span key={p} className={`pill pill-${slugifyStr(p)}`}>
               {pijlerLabel(p)}
             </span>
           ))}
-          {soort && <span className="pill pill-soort">{soort}</span>}
         </span>
       </a>
-      {/* Tagged paragraphs ("#dev"), shown by the filter on the posts page. */}
-      {found.map(fragment => (
+      {/* Paragraphs about the active pillar, shown by the filter on the posts page. */}
+      {fragments.map(fragment => (
         <a
           key={fragment.id}
           href={`${href}#${fragment.id}`}

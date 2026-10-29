@@ -42,15 +42,24 @@ const blog = defineCollection({
       // Pages CMS saves pijler and soort; the site expects tags and a description.
       .transform(data => {
         const pijlers = [data.pijler ?? []].flat().filter(Boolean);
-        // Hashtags in the text blocks ("#dev") also make the post findable under that tag.
-        const fragmentTags = fragments(data).flatMap(f => f.tags);
+        // Paragraphs about UX, Design, Development or AI, recognised automatically.
+        const found = fragments(data);
+        // Pillars for the filter: chosen in the CMS, found in the text, or AI for an AI post.
+        const onderwerpen = [
+          ...new Set([
+            ...pijlers.map(p => p.toLowerCase()),
+            ...found.flatMap(f => f.tags),
+            ...(data.soort === "ai" ? ["ai"] : []),
+          ]),
+        ];
         return {
           ...data,
           pijlers,
-          fragmentTags: [...new Set(fragmentTags)],
+          fragments: found,
+          onderwerpen,
           tags: data.tags ?? [
             ...new Set(
-              [...pijlers, data.soort, ...fragmentTags]
+              [data.soort, ...onderwerpen]
                 .filter((tag): tag is string => !!tag)
                 .map(tag => tag.toLowerCase())
             ),

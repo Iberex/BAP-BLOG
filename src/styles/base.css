@@ -147,8 +147,14 @@
     @apply h-1.5 w-1.5 rounded-full;
     background: rgb(var(--pill, var(--color-algemeen)));
   }
-  .pill-soort::before {
-    @apply hidden;
+  /* Type of post (Dagboek, Weekverslag, ...): the main label of a post. */
+  .type {
+    @apply inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium;
+    color: rgb(var(--type, var(--color-algemeen)));
+    background: rgba(var(--type, var(--color-algemeen)), 0.12);
+  }
+  .type-chip[aria-pressed="false"] {
+    color: rgb(var(--type, var(--color-text-base)));
   }
   .chip {
     @apply rounded-full border border-skin-line bg-skin-panel px-3 py-1 text-sm hover:border-skin-fill;
@@ -219,4 +225,36 @@
 .pill-feedback,
 .soort-feedback {
   --pill: 245, 158, 11;
+}
+
+/* Colour per type of post. */
+.soort-weekverslag {
+  --type: 79, 70, 229;
+}
+.soort-dagboek {
+  --type: 217, 119, 6;
+}
+.soort-research {
+  --type: 8, 145, 178;
+}
+.soort-experiment {
+  --type: 101, 163, 13;
+}
+.soort-playtest {
+  --type: 219, 39, 119;
+}
+.soort-feedback {
+  --type: 234, 88, 12;
+}
+.soort-meeting {
+  --type: 71, 85, 105;
+}
+.soort-ai {
+  --type: 124, 58, 237;
+}
+.soort-reflectie {
+  --type: 13, 148, 136;
+}
+.soort-algemeen {
+  --type: 113, 113, 122;
 }

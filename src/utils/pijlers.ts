@@ -5,6 +5,7 @@ export const PIJLERS = [
   { key: "ux", label: "UX" },
   { key: "design", label: "Design" },
   { key: "dev", label: "Development" },
+  { key: "ai", label: "AI" },
   { key: "algemeen", label: "Algemeen" },
 ] as const;
 

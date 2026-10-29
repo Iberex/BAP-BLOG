@@ -27,9 +27,7 @@ for (const post of paginatedPosts) {
 
 const soorten = [
   ...new Set(
-    paginatedPosts
-      .flatMap(({ data }) => [data.soort, ...data.fragmentTags])
-      .filter(tag => tag && !PIJLERS.some(p => p.key === tag)) as string[]
+    paginatedPosts.map(({ data }) => data.soort).filter(Boolean) as string[]
   ),
 ].sort();
 ---
@@ -38,9 +36,24 @@ const soorten = [
   <Header activeNav="posts" />
   <Main
     pageTitle="Posts"
-    pageDesc="Alle posts in volgorde, per week. Filter op pijler of soort post."
+    pageDesc="Alle posts in volgorde, per week. Filter op soort post of pijler."
   >
     <div class="filters" aria-label="Filters">
+      <div class="filter-row" data-filter="soort">
+        <span class="filter-label">Soort</span>
+        <button class="chip" aria-pressed="true" data-value="">Alles</button>
+        {
+          soorten.map(soort => (
+            <button
+              class={`chip type-chip soort-${slugifyStr(soort)}`}
+              aria-pressed="false"
+              data-value={slugifyStr(soort)}
+            >
+              {SOORTEN[soort]?.label ?? soort}
+            </button>
+          ))
+        }
+      </div>
       <div class="filter-row" data-filter="pijler">
         <span class="filter-label">Pijler</span>
         <button class="chip" aria-pressed="true" data-value="">Alles</button>
@@ -52,57 +65,55 @@ const soorten = [
           ))
         }
       </div>
-      {
-        soorten.length > 1 && (
-          <div class="filter-row" data-filter="soort">
-            <span class="filter-label">Soort</span>
-            <button class="chip" aria-pressed="true" data-value="">
-              Alles
+    </div>
+    {
+      soorten.length > 1 && (
+        <div class="filter-row" data-filter="soort">
+          <span class="filter-label">Soort</span>
+          <button class="chip" aria-pressed="true" data-value="">
+            Alles
+          </button>
+          {soorten.map(soort => (
+            <button
+              class="chip"
+              aria-pressed="false"
+              data-value={slugifyStr(soort)}
+            >
+              {SOORTEN[soort]?.label ?? soort}
             </button>
-            {soorten.map(soort => (
-              <button
-                class="chip"
-                aria-pressed="false"
-                data-value={slugifyStr(soort)}
-              >
-                {SOORTEN[soort]?.label ?? soort}
-              </button>
-            ))}
-          </div>
-        )
-      }
-    </div>
-
-    <div class="panel">
-      {
-        [...weeks].map(([week, posts]) => (
-          <section class="week-group">
-            <h2 class="panel-title">
-              {week >= 1 ? `Week ${week}` : "Voor de start"}
-              {week >= 1 && (
-                <span class="font-normal"> · {weekRange(week)}</span>
-              )}
-            </h2>
-            <ul>
-              {posts.map(({ data, slug }) => (
-                <Card
-                  href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          </section>
-        ))
-      }
-      <p id="no-results" class="opacity-60" hidden>
-        Geen posts met deze filters.
-      </p>
-    </div>
+          ))}
+        </div>
+      )
+    }
   </Main>
 
-  <Footer />
+  <div class="panel">
+    {
+      [...weeks].map(([week, posts]) => (
+        <section class="week-group">
+          <h2 class="panel-title">
+            {week >= 1 ? `Week ${week}` : "Voor de start"}
+            {week >= 1 && <span class="font-normal"> · {weekRange(week)}</span>}
+          </h2>
+          <ul>
+            {posts.map(({ data, slug }) => (
+              <Card
+                href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+                frontmatter={data}
+                secHeading={false}
+              />
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+    <p id="no-results" class="opacity-60" hidden>
+      Geen posts met deze filters.
+    </p>
+  </div>
 </Layout>
+
+<Footer />
 
 <style>
   .filters {
@@ -133,15 +144,12 @@ const soorten = [
     rows.forEach(row => {
       const match =
         (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
-        (!soort || row.dataset.soort?.split(" ").includes(soort));
+        (!soort || row.dataset.soort === soort);
       row.hidden = !match;
       // Show the paragraphs tagged with the active filter, linking straight to them.
       row.querySelectorAll<HTMLElement>(".fragment").forEach(fragment => {
         const tags = fragment.dataset.tags!.split(" ");
-        const show =
-          (!!pijler || !!soort) &&
-          (!pijler || tags.includes(pijler)) &&
-          (!soort || tags.includes(soort));
+        const show = !!pijler && tags.includes(pijler);
         fragment.classList.toggle("hidden", !show);
         fragment.classList.toggle("block", show);
       });

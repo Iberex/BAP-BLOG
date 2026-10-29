@@ -33,3 +33,6 @@ pnpm-debug.log*
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+# AI paragraph labels (restored by actions/cache in CI)
+.cache/

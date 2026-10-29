@@ -9,6 +9,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  models: read # free GitHub Models, used to label paragraphs
 
 concurrency:
   group: pages
@@ -20,10 +21,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Install, build and upload site
-        uses: withastro/action@v6
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      # Paragraph labels from earlier runs, so each paragraph is only sent to the model once.
+      - name: Restore paragraph labels
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: fragment-tags-${{ github.run_id }}
+          restore-keys: fragment-tags-
+      - name: Label paragraphs with AI
+        run: node scripts/tag-paragraphs.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        run: npm run build
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build

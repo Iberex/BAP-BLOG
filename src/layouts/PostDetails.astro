@@ -9,6 +9,7 @@ import Datetime from "@components/Datetime";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel, bapWeek } from "@utils/pijlers";
+import { SOORTEN } from "@utils/soorten";
 import { SITE } from "@config";
 
 export interface Props {
@@ -63,6 +64,16 @@ const layoutProps = {
     <header class="mb-4 mt-4">
       <p class="mb-2 flex flex-wrap items-center gap-1.5">
         {
+          soort && (
+            <a
+              href={`${base}posts/?soort=${slugifyStr(soort)}`}
+              class={`type soort-${slugifyStr(soort)}`}
+            >
+              {SOORTEN[soort]?.label ?? soort}
+            </a>
+          )
+        }
+        {
           pijlers.map(p => (
             <a
               href={`${base}posts/?pijler=${slugifyStr(p)}`}
@@ -71,16 +82,6 @@ const layoutProps = {
               {pijlerLabel(p)}
             </a>
           ))
-        }
-        {
-          soort && (
-            <a
-              href={`${base}posts/?soort=${slugifyStr(soort)}`}
-              class="pill pill-soort hover:border-skin-fill"
-            >
-              {soort}
-            </a>
-          )
         }
         {week >= 1 && <span class="ml-1 text-xs opacity-50">Week {week}</span>}
       </p>
