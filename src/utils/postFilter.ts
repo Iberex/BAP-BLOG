@@ -1,11 +1,7 @@
-import { SITE } from "@config";
 import type { CollectionEntry } from "astro:content";
 
-const postFilter = ({ data }: CollectionEntry<"blog">) => {
-  const isPublishTimePassed =
-    Date.now() >
-    new Date(data.pubDatetime).getTime() - SITE.scheduledPostMargin;
-  return !data.draft && (import.meta.env.DEV || isPublishTimePassed);
-};
+// Only "Nog niet publiceren" hides a post. Pages CMS stores the local time with a
+// "Z" (UTC) suffix, so a time-based filter would hide fresh posts for an hour.
+const postFilter = ({ data }: CollectionEntry<"blog">) => !data.draft;
 
 export default postFilter;
