@@ -11,7 +11,6 @@ Op [Posts](/BAP-BLOG/posts/) staan alle posts chronologisch, gegroepeerd per wee
 
 - **Pijler:** UX, Design, Development, Algemeen
 - **Soort post:** weekverslag, dagboek, research, proces, feedback, learning, ai, planning
-- **Leerresultaat:** de OLR-code, als de post erover gaat
 
 Elke week schrijven we een **weekverslag** met een vaste opbouw: samenvatting, voortgang, UX, design, development, playtest, feedback, AI-gebruik en volgende stappen. Bij playtests noteren we hoeveel testers en groepen er waren.
 

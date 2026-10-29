@@ -21,7 +21,6 @@ const blog = defineCollection({
         pijler: z.union([z.string(), z.array(z.string())]).nullish(),
         soort: z.string().optional(),
         samenvatting: text,
-        olr: z.array(z.string()).nullish(),
         week: z
           .object({
             voortgang: text,
@@ -54,7 +53,7 @@ const blog = defineCollection({
         description: z.string().optional(),
         canonicalURL: z.string().optional(),
       })
-      // Pages CMS saves pijler, soort and olr; the site expects tags and a description.
+      // Pages CMS saves pijler and soort; the site expects tags and a description.
       .transform(data => {
         const pijlers = [data.pijler ?? []].flat().filter(Boolean);
         return {
@@ -62,9 +61,7 @@ const blog = defineCollection({
           pijlers,
           tags:
             data.tags ??
-            [...pijlers, data.soort, ...(data.olr ?? [])].filter(
-              (tag): tag is string => !!tag
-            ),
+            [...pijlers, data.soort].filter((tag): tag is string => !!tag),
           description: data.description ?? (data.samenvatting || data.title),
         };
       }),
