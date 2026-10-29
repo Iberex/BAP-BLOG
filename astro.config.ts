@@ -38,4 +38,7 @@ export default defineConfig({
     },
   },
   scopedStyleStrategy: "where",
+  // Inline all CSS in each page: GitHub Pages caches HTML for 10 minutes, so after a deploy a
+  // cached page could point to a CSS file that no longer exists (unstyled until a refresh).
+  build: { inlineStylesheets: "always" },
 });

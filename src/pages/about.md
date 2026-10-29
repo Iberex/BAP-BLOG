@@ -16,8 +16,7 @@ Op [Posts](/BAP-BLOG/posts/) staan alle posts chronologisch, gegroepeerd per wee
 Elke week schrijven we een **weekverslag** met een vaste opbouw: samenvatting, voortgang, UX, design, development, playtest, feedback, AI-gebruik en volgende stappen. Bij playtests noteren we hoeveel testers en groepen er waren.
 
 - [Alle tags](/BAP-BLOG/tags/)
-- [Planning en deadlines](/BAP-BLOG/planning/)
-- [Uren per dag](/BAP-BLOG/uren/)
+- [Agenda met deadlines](/BAP-BLOG/planning/)
 - [Team en rollen](/BAP-BLOG/team/)
 
 ## AI-gebruik

@@ -1,56 +1,164 @@
 ---
 import AboutLayout from "@layouts/AboutLayout.astro";
-import { planningDate } from "@utils/pijlers";
-import planning from "../data/planning.json";
+import {
+  months,
+  formatDay,
+  formatRange,
+  soortClass,
+  items,
+} from "@utils/agenda";
+
+const calendar = months();
+const weekdays = ["ma", "di", "wo", "do", "vr", "za", "zo"];
+const soorten = [...new Set(items.map(item => item.soort || "andere"))];
 ---
 
-<AboutLayout frontmatter={{ title: "Planning", nav: "planning" }}>
-  <ol class="timeline not-prose">
+<AboutLayout frontmatter={{ title: "Agenda", nav: "planning" }}>
+  <div slot="before" class="mb-4 flex flex-wrap items-center gap-2">
     {
-      planning.map(row => (
-        <li data-date={planningDate(row.datum) ?? ""}>
-          <span class="dot" aria-hidden="true" />
-          <p class="text-sm font-medium">
-            {row.datum}
-            <span class="badge" hidden>
-              Volgende
-            </span>
-          </p>
-          <p class="text-sm opacity-70">{row.wat}</p>
-        </li>
+      soorten.map(soort => (
+        <span class={`pill ${soortClass(soort)}`}>{soort}</span>
       ))
     }
-  </ol>
+  </div>
+
+  <div class="not-prose">
+    {
+      calendar.map((month, index) => (
+        <div class="month" data-month={month.key} hidden={index > 0}>
+          <div class="mb-4 flex items-center justify-between">
+            <button
+              class="nav-btn"
+              data-step="-1"
+              aria-label="Vorige maand"
+              disabled={index === 0}
+            >
+              ←
+            </button>
+            <h2 class="font-semibold capitalize">{month.label}</h2>
+            <button
+              class="nav-btn"
+              data-step="1"
+              aria-label="Volgende maand"
+              disabled={index === calendar.length - 1}
+            >
+              →
+            </button>
+          </div>
+
+          <div class="grid grid-cols-7 text-center text-xs opacity-50">
+            {weekdays.map(day => (
+              <span class="pb-2">{day}</span>
+            ))}
+          </div>
+          <div class="calendar">
+            {month.days.map(day => (
+              <div
+                class:list={["day", { "out-month": !day.inMonth }]}
+                data-date={day.iso}
+              >
+                <span class="day-number">
+                  {formatDay(day.iso, { day: "numeric" })}
+                </span>
+                {day.inMonth &&
+                  day.items.map(item => (
+                    <span
+                      class={`event ${soortClass(item.soort)}`}
+                      title={item.titel}
+                    >
+                      <span class="event-text">{item.titel}</span>
+                    </span>
+                  ))}
+              </div>
+            ))}
+          </div>
+
+          <ul class="mt-6 flex flex-col">
+            {month.items.map(item => (
+              <li class="item" data-end={item.einde}>
+                <span class="text-sm tabular-nums opacity-60">
+                  {formatRange(item)}
+                  {item.tijd && <span class="block">{item.tijd}</span>}
+                </span>
+                <span class="text-sm">{item.titel}</span>
+                <span
+                  class={`pill ${soortClass(item.soort)} justify-self-start`}
+                >
+                  {item.soort || "andere"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
 </AboutLayout>
 
 <style>
-  .timeline {
-    @apply relative ml-1 border-l border-skin-line;
+  .nav-btn {
+    @apply rounded-md border border-skin-line px-3 py-1 hover:border-skin-fill disabled:opacity-30 disabled:hover:border-skin-line;
   }
-  .timeline li {
-    @apply relative pb-5 pl-6 last:pb-0;
+  .calendar {
+    @apply grid grid-cols-7 overflow-hidden rounded-lg border-l border-t border-skin-line;
   }
-  .dot {
-    @apply absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-skin-fill bg-skin-panel;
+  .day {
+    @apply flex min-h-[4.5rem] min-w-0 flex-col gap-0.5 border-b border-r border-skin-line p-1 sm:min-h-[6rem];
   }
-  .timeline li.past {
+  .day.out-month {
+    @apply bg-skin-card opacity-50;
+  }
+  .day-number {
+    @apply mb-0.5 self-start rounded-full px-1.5 text-xs tabular-nums opacity-60;
+  }
+  .day.today .day-number {
+    @apply bg-skin-inverted text-skin-inverted opacity-100;
+  }
+  .event {
+    @apply block h-1.5 rounded-full sm:h-auto sm:rounded sm:px-1.5 sm:py-0.5;
+    background: rgba(var(--pill, var(--color-algemeen)), 0.18);
+  }
+  .event-text {
+    @apply hidden truncate text-[11px] leading-4 sm:block;
+  }
+  .item {
+    @apply grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-1 border-b border-skin-line py-3 last:border-b-0 sm:grid-cols-[8rem_1fr_auto];
+  }
+  .item .pill {
+    @apply col-start-2 sm:col-start-3;
+  }
+  .item.past {
     @apply opacity-40;
-  }
-  .timeline li.past .dot {
-    @apply border-skin-line bg-skin-card-muted;
-  }
-  .badge {
-    @apply ml-2 rounded-full bg-skin-inverted px-2 py-0.5 text-xs text-skin-inverted;
   }
 </style>
 
 <script>
-  // Mark what already happened and the next item, in the browser so it stays current.
+  // Done in the browser so "today" stays right between builds.
   const today = new Date().toISOString().slice(0, 10);
-  const items = [...document.querySelectorAll<HTMLElement>(".timeline li")];
-  items.forEach(li => {
-    if (li.dataset.date && li.dataset.date < today) li.classList.add("past");
+  document
+    .querySelector(`.day[data-date="${today}"]:not(.out-month)`)
+    ?.classList.add("today");
+  document.querySelectorAll<HTMLElement>(".item").forEach(item => {
+    if (item.dataset.end! < today) item.classList.add("past");
   });
-  const next = items.find(li => li.dataset.date && li.dataset.date >= today);
-  next?.querySelector<HTMLElement>(".badge")?.removeAttribute("hidden");
+
+  const months = [...document.querySelectorAll<HTMLElement>(".month")];
+  let current = months.findIndex(m => m.dataset.month === today.slice(0, 7));
+  if (current === -1)
+    current = today < months[0]?.dataset.month! ? 0 : months.length - 1;
+
+  function show(index: number) {
+    current = Math.max(0, Math.min(months.length - 1, index));
+    months.forEach((month, i) => (month.hidden = i !== current));
+  }
+  months.forEach(month =>
+    month
+      .querySelectorAll<HTMLElement>(".nav-btn")
+      .forEach(button =>
+        button.addEventListener("click", () =>
+          show(current + Number(button.dataset.step))
+        )
+      )
+  );
+  show(current);
 </script>

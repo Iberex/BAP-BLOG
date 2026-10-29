@@ -28,13 +28,3 @@ export const weekRange = (week: number) => {
   const monday = START + (week - 1) * 7 * DAY;
   return `${format(monday)} – ${format(monday + 6 * DAY)}`;
 };
-
-// Planning dates are free text ("vr 20/11", "9/11 – 13/11", "21/01/2027").
-// Returns the first date as yyyy-mm-dd, or undefined when there is none (e.g. "week 1").
-export const planningDate = (text: string) => {
-  const match = text.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/);
-  if (!match) return undefined;
-  const [, day, month, year] = match;
-  const y = year ?? (Number(month) >= 9 ? "2026" : "2027");
-  return `${y}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-};

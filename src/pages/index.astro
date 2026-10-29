@@ -5,21 +5,9 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import getSortedPosts from "@utils/getSortedPosts";
-import { PIJLERS, bapWeek, planningDate } from "@utils/pijlers";
+import { PIJLERS, bapWeek } from "@utils/pijlers";
+import { items, formatRange, soortClass } from "@utils/agenda";
 import { slugifyStr } from "@utils/slugify";
-import planning from "../data/planning.json";
-import urenData from "../data/uren.json";
-
-// uren.json starts empty, so give TypeScript the shape Pages CMS writes.
-type Uren = {
-  datum: string;
-  ibe: number;
-  tjorven: number;
-  senne: number;
-  wat?: string;
-};
-const uren = urenData as Uren[];
-import team from "../data/team.json";
 
 const base = import.meta.env.BASE_URL;
 const posts = getSortedPosts(await getCollection("blog"));
@@ -32,19 +20,6 @@ const perPijler = PIJLERS.map(pijler => ({
     data.pijlers.some(p => slugifyStr(p) === pijler.key)
   ).length,
 }));
-
-// Deadlines with a parseable date; the script below hides the ones that already passed.
-const deadlines = planning
-  .map(row => ({ ...row, iso: planningDate(row.datum) }))
-  .filter(row => row.iso);
-
-const people = ["ibe", "tjorven", "senne"] as const;
-const hours = people.map(key => ({
-  name: team.find(m => m.naam.toLowerCase() === key)?.naam ?? key,
-  total: uren.reduce((sum, row) => sum + (Number(row[key]) || 0), 0),
-}));
-const totalHours = hours.reduce((sum, p) => sum + p.total, 0);
-const maxHours = Math.max(1, ...hours.map(p => p.total));
 ---
 
 <Layout>
@@ -77,9 +52,24 @@ const maxHours = Math.max(1, ...hours.map(p => p.total));
         </p>
       </div>
       <div class="panel stat">
-        <p class="panel-title">Uren</p>
-        <p class="stat-value">{totalHours} u</p>
-        <p class="stat-note">samen geregistreerd</p>
+        <p class="panel-title">Volgende deadline</p>
+        {
+          items
+            .filter(item => item.soort === "deadline")
+            .map(item => (
+              <div
+                class="deadline"
+                data-start={item.start}
+                data-end={item.einde}
+                hidden
+              >
+                <p class="stat-value days" />
+                <p class="stat-note line-clamp-1" title={item.titel}>
+                  {item.titel}
+                </p>
+              </div>
+            ))
+        }
       </div>
     </section>
 
@@ -128,46 +118,27 @@ const maxHours = Math.max(1, ...hours.map(p => p.total));
         <div class="panel">
           <div class="flex items-baseline justify-between">
             <h2 class="panel-title">Komt eraan</h2>
-            <a href={`${base}planning/`} class="more">Planning →</a>
+            <a href={`${base}planning/`} class="more">Agenda →</a>
           </div>
           <ul id="deadlines" class="flex flex-col gap-3">
             {
-              deadlines.map(row => (
-                <li data-date={row.iso} hidden>
-                  <p class="text-sm">
-                    <span class="font-medium">{row.datum}</span>
-                    <span class="days ml-1 opacity-50" />
+              items.map(item => (
+                <li data-start={item.start} data-end={item.einde} hidden>
+                  <p class="flex items-center gap-2 text-sm">
+                    <span class={`pill ${soortClass(item.soort)}`}>
+                      {formatRange(item)}
+                    </span>
+                    <span class="days opacity-50" />
                   </p>
-                  <p class="line-clamp-2 text-sm opacity-70">{row.wat}</p>
+                  <p class="mt-1 line-clamp-2 text-sm opacity-70">
+                    {item.titel}
+                  </p>
                 </li>
               ))
             }
           </ul>
         </div>
       </div>
-    </section>
-
-    <section class="mt-4 grid gap-4 sm:grid-cols-3">
-      {
-        hours.map(person => (
-          <div class="panel flex items-center gap-4">
-            <img
-              src={`${base}stickers/${person.name.toLowerCase()}.png`}
-              alt=""
-              width="313"
-              height="360"
-              class="h-14 w-auto"
-            />
-            <div class="flex-1">
-              <p class="font-medium">{person.name}</p>
-              <p class="text-sm opacity-60">{person.total} u</p>
-              <div class="bar" aria-hidden="true">
-                <span style={`width: ${(person.total / maxHours) * 100}%`} />
-              </div>
-            </div>
-          </div>
-        ))
-      }
     </section>
   </main>
 
@@ -202,33 +173,40 @@ const maxHours = Math.max(1, ...hours.map(p => p.total));
   .pijler-link {
     @apply flex items-center justify-between rounded-md px-1 py-1 hover:bg-skin-card;
   }
-  .bar {
-    @apply mt-2 h-1.5 w-full overflow-hidden rounded-full bg-skin-card;
-  }
-  .bar span {
-    @apply block h-full rounded-full bg-skin-inverted opacity-70;
-  }
 </style>
 
 <script>
   // The site is built once per change, so "upcoming" is decided in the browser.
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = [
-    ...document.querySelectorAll<HTMLElement>("#deadlines li"),
-  ].filter(li => li.dataset.date! >= today);
-
-  upcoming.slice(0, 3).forEach(li => {
+  const label = (el: HTMLElement) => {
     const days = Math.round(
-      (Date.parse(li.dataset.date!) - Date.parse(today)) / 86400000
+      (Date.parse(el.dataset.start!) - Date.parse(today)) / 86400000
     );
-    li.querySelector(".days")!.textContent =
-      days === 0
-        ? "· vandaag"
+    return days < 0
+      ? "bezig"
+      : days === 0
+        ? "vandaag"
         : days === 1
-          ? "· morgen"
-          : `· over ${days} dagen`;
-    li.hidden = false;
-  });
+          ? "morgen"
+          : `over ${days} dagen`;
+  };
+  const upcoming = (selector: string) =>
+    [...document.querySelectorAll<HTMLElement>(selector)].filter(
+      el => el.dataset.end! >= today
+    );
+
+  upcoming("#deadlines li")
+    .slice(0, 4)
+    .forEach(li => {
+      li.querySelector(".days")!.textContent = label(li);
+      li.hidden = false;
+    });
+
+  const deadline = upcoming(".deadline")[0];
+  if (deadline) {
+    deadline.querySelector(".days")!.textContent = label(deadline);
+    deadline.hidden = false;
+  }
 
   // Same for the week number, so it stays right between builds.
   const start = Date.UTC(2026, 9, 26);

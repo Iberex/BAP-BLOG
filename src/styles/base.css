@@ -174,3 +174,17 @@
 .pill-dev {
   --pill: var(--color-dev);
 }
+
+/* Agenda types, same dot style as the pillars. */
+.soort-deadline {
+  --pill: 244, 63, 94;
+}
+.soort-presentatie {
+  --pill: 245, 158, 11;
+}
+.soort-expert-desk {
+  --pill: 139, 92, 246;
+}
+.soort-festival {
+  --pill: var(--color-dev);
+}

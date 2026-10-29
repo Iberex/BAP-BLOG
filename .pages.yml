@@ -80,27 +80,23 @@ content:
         required: true
         options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
       - { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
-  - name: uren
-    label: Uren
-    type: file
-    path: src/data/uren.json
-    format: json
-    list: true
-    fields:
-      - { name: datum, label: Datum, type: date, required: true, options: { format: yyyy-MM-dd } }
-      - { name: ibe, label: "Uren Ibe", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
-      - { name: tjorven, label: "Uren Tjorven", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
-      - { name: senne, label: "Uren Senne", type: number, default: 0, options: { min: 0, max: 24, step: 0.5 } }
-      - { name: wat, label: "Wat deden we?", type: string }
   - name: planning
-    label: Planning
+    label: Agenda
     type: file
     path: src/data/planning.json
     format: json
     list: true
     fields:
-      - { name: datum, label: "Datum (vrije tekst, bv. 'vr 20/11' of '9/11 – 13/11')", type: string, required: true }
-      - { name: wat, label: Wat, type: string, required: true }
+      - { name: titel, label: Wat, type: string, required: true }
+      - { name: start, label: Datum, type: date, required: true, options: { format: yyyy-MM-dd } }
+      - { name: einde, label: "Tot (alleen bij meerdere dagen)", type: date, options: { format: yyyy-MM-dd } }
+      - { name: tijd, label: "Uur (bv. 'vóór 22u' of '13.30–17.30')", type: string }
+      - name: soort
+        label: Soort
+        type: select
+        required: true
+        default: andere
+        options: { values: [ deadline, presentatie, expert desk, festival, andere ] }
   - name: team
     label: Team
     type: file
