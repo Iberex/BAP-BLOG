@@ -14,27 +14,28 @@ content:
       order: desc
     fields:
       - { name: title, label: Titel, type: string, required: true }
-      - name: pubDatetime
-        label: Datum
-        type: date
-        required: true
-        options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
       - name: author
-        label: Auteur
+        label: Wie schrijft?
         type: select
         required: true
         options: { values: [ Ibe, Tjorven, Senne ] }
-      - name: tags
-        label: "Tags (minstens één pijler + één soort)"
+      - name: pijler
+        label: Pijler
         type: select
         required: true
-        options:
-          multiple: true
-          values: [ UX, DESIGN, DEV, ALGEMEEN, dagboek, research, proces, feedback, learning, ai, planning ]
-      - { name: description, label: "Korte samenvatting (1 zin)", type: string, required: true }
-      - { name: featured, label: "Uitgelicht op home", type: boolean, default: false }
-      - { name: draft, label: "Concept (nog niet publiceren)", type: boolean, default: false }
+        options: { values: [ UX, DESIGN, DEV, ALGEMEEN ] }
+      - name: soort
+        label: Soort post
+        type: select
+        required: true
+        options: { values: [ dagboek, research, proces, feedback, learning, ai, planning ] }
       - { name: body, label: Tekst, type: rich-text }
+      - name: pubDatetime
+        label: Datum (staat al op vandaag)
+        type: date
+        required: true
+        options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
+      - { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
   - name: uren
     label: Uren
     type: file

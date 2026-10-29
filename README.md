@@ -8,17 +8,14 @@ Gebouwd op het [AstroPaper](https://github.com/satnaing/astro-paper)-thema via d
 
 ## Iets toevoegen
 
-1. Klik onderaan de blog op **Beheer** (of ga naar https://app.pagescms.org/iberex/bap-blog) en log in met GitHub.
-2. Kies de repo **BAP-BLOG**.
-3. **Posts → Add an entry.** Vul titel, datum, auteur, tags (minstens één pijler en één soort) en een korte samenvatting in, schrijf je tekst en klik *Save*.
-4. **Uren / Planning / Team:** klik *Add an entry* voor een nieuwe rij en vul de velden in. Geen code nodig.
-5. Na ±1 minuut staat het online. De voortgang zie je op GitHub onder **Actions**.
+1. Klik onderaan de blog op **+ Nieuwe post** en log in met GitHub.
+2. Vul in: **titel**, **wie**, **pijler**, **soort** en je **tekst**. De datum staat al op vandaag.
+3. Klik _Save_. Na ±1 minuut staat het online.
 
-### Tags
-- Pijler: `UX`, `DESIGN`, `DEV`, `ALGEMEEN`
-- Soort: `dagboek`, `research`, `proces`, `feedback`, `learning`, `ai`, `planning`
+**Uren / Planning / Team:** klik onderaan op **Beheer**, kies het onderdeel en klik _Add an entry_.
 
 ### Dagboek-kopjes
+
 Wat deed ik vandaag? · Wat heb ik geleerd? · Problemen en hoe opgelost · AI-gebruik vandaag · Volgende stap
 
 ## Lokaal (optioneel)
