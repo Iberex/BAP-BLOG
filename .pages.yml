@@ -22,8 +22,7 @@ content:
         name: pijler
         label: "Pijler(s) – een post mag meerdere pijlers combineren"
         type: select
-        required: true
-        options: { multiple: true, values: [ UX, DESIGN, DEV, ALGEMEEN ] }
+        options: { multiple: true, values: [ UX, DESIGN, DEV ] }
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
       - { name: soort, type: string, hidden: true, default: weekverslag }
       - name: blokken
@@ -292,7 +291,7 @@ content:
       - name: pijler
         label: Pijler
         type: select
-        options: { values: [ UX, DESIGN, DEV, ALGEMEEN ] }
+        options: { values: [ UX, DESIGN, DEV ] }
   - name: about
     label: Over deze blog
     type: file

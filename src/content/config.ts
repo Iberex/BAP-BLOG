@@ -41,7 +41,10 @@ const blog = defineCollection({
       })
       // Pages CMS saves pijler and soort; the site expects tags and a description.
       .transform(data => {
-        const pijlers = [data.pijler ?? []].flat().filter(Boolean);
+        // "Algemeen" used to be a pillar; it is a type of post now.
+        const pijlers = [data.pijler ?? []]
+          .flat()
+          .filter(p => p && p.toLowerCase() !== "algemeen");
         // Paragraphs about UX, Design, Development or AI, recognised automatically.
         const found = fragments(data);
         // Pillars for the filter: chosen in the CMS, found in the text, or AI for an AI post.

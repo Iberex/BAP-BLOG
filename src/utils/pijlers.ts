@@ -1,12 +1,11 @@
 import { slugifyStr } from "./slugify";
 
-// The three pillars from the briefing, plus "algemeen" for posts about the project as a whole.
+// The three pillars from the briefing, plus AI. "Algemeen" is a type of post, not a pillar.
 export const PIJLERS = [
   { key: "ux", label: "UX" },
   { key: "design", label: "Design" },
   { key: "dev", label: "Development" },
   { key: "ai", label: "AI" },
-  { key: "algemeen", label: "Algemeen" },
 ] as const;
 
 export const pijlerLabel = (value: string) =>

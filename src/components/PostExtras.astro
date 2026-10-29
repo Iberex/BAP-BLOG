@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import { SOORTEN } from "@utils/soorten";
 import { paragraphs, fragmentId } from "@utils/fragments";
-import { pijlerLabel } from "@utils/pijlers";
 
 export interface Props {
   data: CollectionEntry<"blog">["data"];
@@ -75,11 +74,6 @@ const actions = lines(actiepunten);
           id={paragraph.id}
           class:list={["text", { tagged: paragraph.tags.length > 0 }]}
         >
-          {paragraph.tags.map(tag => (
-            <span class={`pill pill-${tag} mr-1.5 align-middle`}>
-              {pijlerLabel(tag)}
-            </span>
-          ))}
           {paragraph.text}
         </p>
       ))}
