@@ -7,9 +7,9 @@ Dit is de procesblog van onze bachelorproef aan **Devine** (academiejaar 2026–
 
 ## Hoe lees je deze blog?
 
-Elke post heeft tags. Zo kan je snel filteren:
+Op [Posts](/BAP-BLOG/posts/) staan alle posts chronologisch, gegroepeerd per week. Bovenaan filter je op pijler en op soort post. Een post kan meerdere pijlers combineren.
 
-- **Pijler:** UX, DESIGN, DEV, ALGEMEEN
+- **Pijler:** UX, Design, Development, Algemeen
 - **Soort post:** weekverslag, dagboek, research, proces, feedback, learning, ai, planning
 - **Leerresultaat:** de OLR-code, als de post erover gaat
 

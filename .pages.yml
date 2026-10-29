@@ -20,10 +20,10 @@ content:
         required: true
         options: { values: [ Ibe, Tjorven, Senne ] }
       - name: pijler
-        label: Pijler
+        label: "Pijler(s) – een post mag meerdere pijlers combineren"
         type: select
         required: true
-        options: { values: [ UX, DESIGN, DEV, ALGEMEEN ] }
+        options: { multiple: true, values: [ UX, DESIGN, DEV, ALGEMEEN ] }
       - name: soort
         label: Soort post
         type: select

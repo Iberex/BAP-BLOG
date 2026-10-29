@@ -1,15 +1,56 @@
 ---
 import AboutLayout from "@layouts/AboutLayout.astro";
+import { planningDate } from "@utils/pijlers";
 import planning from "../data/planning.json";
 ---
 
 <AboutLayout frontmatter={{ title: "Planning", nav: "planning" }}>
-  <table>
-    <thead>
-      <tr><th>Datum</th><th>Wat</th></tr>
-    </thead>
-    <tbody>
-      {planning.map(row => <tr><td>{row.datum}</td><td>{row.wat}</td></tr>)}
-    </tbody>
-  </table>
+  <ol class="timeline not-prose">
+    {
+      planning.map(row => (
+        <li data-date={planningDate(row.datum) ?? ""}>
+          <span class="dot" aria-hidden="true" />
+          <p class="text-sm font-medium">
+            {row.datum}
+            <span class="badge" hidden>
+              Volgende
+            </span>
+          </p>
+          <p class="text-sm opacity-70">{row.wat}</p>
+        </li>
+      ))
+    }
+  </ol>
 </AboutLayout>
+
+<style>
+  .timeline {
+    @apply relative ml-1 border-l border-skin-line;
+  }
+  .timeline li {
+    @apply relative pb-5 pl-6 last:pb-0;
+  }
+  .dot {
+    @apply absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-skin-fill bg-skin-panel;
+  }
+  .timeline li.past {
+    @apply opacity-40;
+  }
+  .timeline li.past .dot {
+    @apply border-skin-line bg-skin-card-muted;
+  }
+  .badge {
+    @apply ml-2 rounded-full bg-skin-inverted px-2 py-0.5 text-xs text-skin-inverted;
+  }
+</style>
+
+<script>
+  // Mark what already happened and the next item, in the browser so it stays current.
+  const today = new Date().toISOString().slice(0, 10);
+  const items = [...document.querySelectorAll<HTMLElement>(".timeline li")];
+  items.forEach(li => {
+    if (li.dataset.date && li.dataset.date < today) li.classList.add("past");
+  });
+  const next = items.find(li => li.dataset.date && li.dataset.date >= today);
+  next?.querySelector<HTMLElement>(".badge")?.removeAttribute("hidden");
+</script>

@@ -1,26 +1,38 @@
 ---
 import AboutLayout from "@layouts/AboutLayout.astro";
-import AuthorName from "@components/AuthorName.astro";
+import { pijlerLabel } from "@utils/pijlers";
 import team from "../data/team.json";
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <AboutLayout frontmatter={{ title: "Team", nav: "team" }}>
-  <table>
-    <thead>
-      <tr><th>Wie</th><th>Rol(len)</th><th>Pijler</th></tr>
-    </thead>
-    <tbody>
-      {
-        team.map(member => (
-          <tr>
-            <td>
-              <AuthorName name={member.naam} />
-            </td>
-            <td>{member.rol || "nog in te vullen"}</td>
-            <td>{member.pijler}</td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
+  <div slot="before" class="mb-4 grid gap-4 sm:grid-cols-3">
+    {
+      team.map(member => (
+        <div class="panel flex flex-col items-center text-center">
+          <img
+            src={`${base}stickers/${member.naam.toLowerCase()}.png`}
+            alt=""
+            width="313"
+            height="360"
+            class="h-28 w-auto"
+          />
+          <p class="mt-3 font-medium">{member.naam}</p>
+          <p class="text-sm opacity-60">
+            {member.rol || "Rol nog in te vullen"}
+          </p>
+          {member.pijler && (
+            <span class={`pill pill-${member.pijler.toLowerCase()} mt-3`}>
+              {pijlerLabel(member.pijler)}
+            </span>
+          )}
+        </div>
+      ))
+    }
+  </div>
+  <p class="!my-0">
+    We werken met drie aan de bachelorproef. Elke post vermeldt wie hem schreef.
+    Klant: Jeugdfilmfestival Antwerpen (JEF). Coach: Jynse.
+  </p>
 </AboutLayout>

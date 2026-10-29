@@ -28,6 +28,7 @@ module.exports = {
       backgroundColor: {
         skin: {
           fill: withOpacity("--color-fill"),
+          panel: withOpacity("--color-panel"),
           accent: withOpacity("--color-accent"),
           inverted: withOpacity("--color-text-base"),
           card: withOpacity("--color-card"),

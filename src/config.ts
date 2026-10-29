@@ -7,7 +7,7 @@ export const SITE: Site = {
   title: "BAP-procesblog",
   ogImage: "astropaper-og.jpg",
   lightAndDarkMode: true,
-  postPerPage: 10,
+  postPerPage: 500, // all posts on one page, filtered client-side
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
 };
 

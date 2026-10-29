@@ -3,143 +3,236 @@ import { getCollection } from "astro:content";
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import LinkButton from "@components/LinkButton.astro";
-import Hr from "@components/Hr.astro";
 import Card from "@components/Card";
 import getSortedPosts from "@utils/getSortedPosts";
+import { PIJLERS, bapWeek, planningDate } from "@utils/pijlers";
+import { slugifyStr } from "@utils/slugify";
+import planning from "../data/planning.json";
+import urenData from "../data/uren.json";
 
-const posts = await getCollection("blog");
+// uren.json starts empty, so give TypeScript the shape Pages CMS writes.
+type Uren = {
+  datum: string;
+  ibe: number;
+  tjorven: number;
+  senne: number;
+  wat?: string;
+};
+const uren = urenData as Uren[];
+import team from "../data/team.json";
 
-const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const base = import.meta.env.BASE_URL;
+const posts = getSortedPosts(await getCollection("blog"));
+const featured = posts.filter(({ data }) => data.featured);
+const recent = posts.filter(({ data }) => !data.featured).slice(0, 6);
+
+const perPijler = PIJLERS.map(pijler => ({
+  ...pijler,
+  count: posts.filter(({ data }) =>
+    data.pijlers.some(p => slugifyStr(p) === pijler.key)
+  ).length,
+}));
+
+// Deadlines with a parseable date; the script below hides the ones that already passed.
+const deadlines = planning
+  .map(row => ({ ...row, iso: planningDate(row.datum) }))
+  .filter(row => row.iso);
+
+const people = ["ibe", "tjorven", "senne"] as const;
+const hours = people.map(key => ({
+  name: team.find(m => m.naam.toLowerCase() === key)?.naam ?? key,
+  total: uren.reduce((sum, row) => sum + (Number(row[key]) || 0), 0),
+}));
+const totalHours = hours.reduce((sum, p) => sum + p.total, 0);
+const maxHours = Math.max(1, ...hours.map(p => p.total));
 ---
 
 <Layout>
   <Header />
   <main id="main-content">
-    <section id="hero">
+    <section class="intro">
       <h1>BAP-procesblog</h1>
-      <a
-        target="_blank"
-        href={`${import.meta.env.BASE_URL}rss.xml`}
-        class="rss-link"
-        aria-label="rss feed"
-        title="RSS Feed"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="rss-icon"
-          ><path
-            d="M19 20.001C19 11.729 12.271 5 4 5v2c7.168 0 13 5.832 13 13.001h2z"
-          ></path><path
-            d="M12 20.001h2C14 14.486 9.514 10 4 10v2c4.411 0 8 3.589 8 8.001z"
-          ></path><circle cx="6" cy="18" r="2"></circle>
-        </svg>
-        <span class="sr-only">RSS Feed</span>
-      </a>
-
       <p>
-        Procesblog van onze bachelorproef aan Devine (2026–2027) voor
-        Jeugdfilmfestival Antwerpen, XL-Medialab 2027. Hier houden we elke dag
-        bij wat we doen: research, proces, feedback, learnings en ons gebruik van
-        AI.
-      </p>
-      <p>
-        Filter per pijler:
-        <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}tags/ux/`}>UX</a>,
-        <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}tags/design/`}>Design</a>,
-        <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}tags/dev/`}>Dev</a>
-        of bekijk
-        <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}tags/`}>alle tags</a>,
-        de <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}planning/`}>planning</a>
-        en de <a class="underline underline-offset-4 hover:text-skin-accent" href={`${import.meta.env.BASE_URL}uren/`}>uren</a>.
+        Bachelorproef Devine 2026–2027 voor Jeugdfilmfestival Antwerpen: een
+        multiplayer audiovisuele installatie voor kinderen (6–12 jaar) op
+        XL-Medialab 2027. We houden hier ons proces bij: research, experimenten,
+        feedback en keuzes.
       </p>
     </section>
 
-    <Hr />
+    <section class="grid gap-4 sm:grid-cols-3">
+      <div class="panel stat">
+        <p class="panel-title">Nu</p>
+        <p class="stat-value" id="current-week">Week {bapWeek(new Date())}</p>
+        <p class="stat-note">van de bachelorproef</p>
+      </div>
+      <div class="panel stat">
+        <p class="panel-title">Posts</p>
+        <p class="stat-value">{posts.length}</p>
+        <p class="stat-note">
+          {
+            posts[0] &&
+              `laatste op ${new Date(posts[0].data.pubDatetime).toLocaleDateString("nl-BE", { day: "numeric", month: "long" })}`
+          }
+        </p>
+      </div>
+      <div class="panel stat">
+        <p class="panel-title">Uren</p>
+        <p class="stat-value">{totalHours} u</p>
+        <p class="stat-note">samen geregistreerd</p>
+      </div>
+    </section>
 
-    {
-      featuredPosts.length > 0 && (
-        <>
-          <section id="featured">
-            <h2>Uitgelicht</h2>
+    <section class="mt-4 grid gap-4 sm:grid-cols-3">
+      <div class="panel sm:col-span-2">
+        <div class="flex items-baseline justify-between">
+          <h2 class="panel-title">
+            {featured.length > 0 ? "Uitgelicht en recent" : "Laatste posts"}
+          </h2>
+          <a href={`${base}posts/`} class="more">Alle posts →</a>
+        </div>
+        {
+          posts.length === 0 ? (
+            <p class="opacity-60">Nog geen posts.</p>
+          ) : (
             <ul>
-              {featuredPosts.map(({ data, slug }) => (
+              {[...featured, ...recent].map(({ data, slug }) => (
                 <Card
-                  href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+                  href={`${base}posts/${slug}/`}
                   frontmatter={data}
                   secHeading={false}
                 />
               ))}
             </ul>
-          </section>
-          {recentPosts.length > 0 && <Hr />}
-        </>
-      )
-    }
+          )
+        }
+      </div>
 
-    {
-      recentPosts.length > 0 && (
-        <section id="recent-posts">
-          <h2>Laatste posts</h2>
-          <ul>
-            {recentPosts.map(
-              ({ data, slug }, index) =>
-                index < 5 && (
-                  <Card
-                    href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-                    frontmatter={data}
-                    secHeading={false}
-                  />
-                )
-            )}
+      <div class="flex flex-col gap-4">
+        <div class="panel">
+          <h2 class="panel-title">Pijlers</h2>
+          <ul class="flex flex-col gap-1">
+            {
+              perPijler.map(({ key, label, count }) => (
+                <li>
+                  <a href={`${base}posts/?pijler=${key}`} class="pijler-link">
+                    <span class={`pill pill-${key}`}>{label}</span>
+                    <span class="tabular-nums opacity-60">{count}</span>
+                  </a>
+                </li>
+              ))
+            }
           </ul>
-        </section>
-      )
-    }
+        </div>
 
-    <div class="all-posts-btn-wrapper">
-      <LinkButton href={`${import.meta.env.BASE_URL}posts/`}>
-        Alle posts
-        <svg xmlns="http://www.w3.org/2000/svg"
-          ><path
-            d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"
-          ></path>
-        </svg>
-      </LinkButton>
-    </div>
+        <div class="panel">
+          <div class="flex items-baseline justify-between">
+            <h2 class="panel-title">Komt eraan</h2>
+            <a href={`${base}planning/`} class="more">Planning →</a>
+          </div>
+          <ul id="deadlines" class="flex flex-col gap-3">
+            {
+              deadlines.map(row => (
+                <li data-date={row.iso} hidden>
+                  <p class="text-sm">
+                    <span class="font-medium">{row.datum}</span>
+                    <span class="days ml-1 opacity-50" />
+                  </p>
+                  <p class="line-clamp-2 text-sm opacity-70">{row.wat}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-4 grid gap-4 sm:grid-cols-3">
+      {
+        hours.map(person => (
+          <div class="panel flex items-center gap-4">
+            <img
+              src={`${base}stickers/${person.name.toLowerCase()}.png`}
+              alt=""
+              width="313"
+              height="360"
+              class="h-14 w-auto"
+            />
+            <div class="flex-1">
+              <p class="font-medium">{person.name}</p>
+              <p class="text-sm opacity-60">{person.total} u</p>
+              <div class="bar" aria-hidden="true">
+                <span style={`width: ${(person.total / maxHours) * 100}%`} />
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </section>
   </main>
 
   <Footer />
 </Layout>
 
 <style>
-  /* ===== Hero Section ===== */
-  #hero {
+  main {
+    @apply mx-auto w-full max-w-4xl px-4 pb-12;
+  }
+  main > section {
+    @apply px-0;
+  }
+  .intro {
     @apply pb-6 pt-8;
   }
-  #hero h1 {
-    @apply my-4 inline-block text-3xl font-bold sm:my-8 sm:text-5xl;
+  .intro h1 {
+    @apply text-2xl font-semibold;
   }
-  #hero .rss-link {
-    @apply mb-6;
+  .intro p {
+    @apply mt-2 max-w-2xl opacity-70;
   }
-  #hero .rss-icon {
-    @apply mb-2 h-6 w-6 scale-110 fill-skin-accent sm:mb-3 sm:scale-125;
+  .stat-value {
+    @apply text-2xl font-semibold tabular-nums;
   }
-  #hero p {
-    @apply my-2;
+  .stat-note {
+    @apply mt-1 text-sm opacity-60;
   }
-
-  /* ===== Featured & Recent Posts Sections ===== */
-  #featured,
-  #recent-posts {
-    @apply pb-6 pt-12;
+  .more {
+    @apply text-sm opacity-60 hover:underline hover:underline-offset-4 hover:opacity-100;
   }
-  #featured h2,
-  #recent-posts h2 {
-    @apply text-2xl font-semibold tracking-wide;
+  .pijler-link {
+    @apply flex items-center justify-between rounded-md px-1 py-1 hover:bg-skin-card;
   }
-  .all-posts-btn-wrapper {
-    @apply my-8 text-center;
+  .bar {
+    @apply mt-2 h-1.5 w-full overflow-hidden rounded-full bg-skin-card;
+  }
+  .bar span {
+    @apply block h-full rounded-full bg-skin-inverted opacity-70;
   }
 </style>
+
+<script>
+  // The site is built once per change, so "upcoming" is decided in the browser.
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = [
+    ...document.querySelectorAll<HTMLElement>("#deadlines li"),
+  ].filter(li => li.dataset.date! >= today);
+
+  upcoming.slice(0, 3).forEach(li => {
+    const days = Math.round(
+      (Date.parse(li.dataset.date!) - Date.parse(today)) / 86400000
+    );
+    li.querySelector(".days")!.textContent =
+      days === 0
+        ? "· vandaag"
+        : days === 1
+          ? "· morgen"
+          : `· over ${days} dagen`;
+    li.hidden = false;
+  });
+
+  // Same for the week number, so it stays right between builds.
+  const start = Date.UTC(2026, 9, 26);
+  const week = Math.floor((Date.now() - start) / (7 * 86400000)) + 1;
+  document.getElementById("current-week")!.textContent =
+    week >= 1 ? `Week ${week}` : "Nog niet gestart";
+</script>

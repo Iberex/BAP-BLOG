@@ -4,9 +4,10 @@ import Layout from "@layouts/Layout.astro";
 import Main from "@layouts/Main.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import Pagination from "@components/Pagination.astro";
 import Card from "@components/Card";
 import { SITE } from "@config";
+import { PIJLERS, bapWeek, weekRange } from "@utils/pijlers";
+import { slugifyStr } from "@utils/slugify";
 
 export interface Props {
   currentPage: number;
@@ -14,27 +15,153 @@ export interface Props {
   paginatedPosts: CollectionEntry<"blog">[];
 }
 
-const { currentPage, totalPages, paginatedPosts } = Astro.props;
+const { paginatedPosts } = Astro.props;
+
+// Group posts per BAP week so the list reads as a timeline.
+const weeks = new Map<number, CollectionEntry<"blog">[]>();
+for (const post of paginatedPosts) {
+  const week = bapWeek(new Date(post.data.pubDatetime));
+  weeks.set(week, [...(weeks.get(week) ?? []), post]);
+}
+
+const soorten = [
+  ...new Set(
+    paginatedPosts.map(({ data }) => data.soort).filter(Boolean) as string[]
+  ),
+].sort();
 ---
 
 <Layout title={`Posts | ${SITE.title}`}>
   <Header activeNav="posts" />
-  <Main pageTitle="Posts" pageDesc="Alle posts, nieuwste eerst.">
-    <ul>
+  <Main
+    pageTitle="Posts"
+    pageDesc="Alle posts in volgorde, per week. Filter op pijler of soort post."
+  >
+    <div class="filters" aria-label="Filters">
+      <div class="filter-row" data-filter="pijler">
+        <span class="filter-label">Pijler</span>
+        <button class="chip" aria-pressed="true" data-value="">Alles</button>
+        {
+          PIJLERS.map(({ key, label }) => (
+            <button class="chip" aria-pressed="false" data-value={key}>
+              {label}
+            </button>
+          ))
+        }
+      </div>
       {
-        paginatedPosts.map(({ data, slug }) => (
-          <Card href={`${import.meta.env.BASE_URL}posts/${slug}/`} frontmatter={data} />
+        soorten.length > 1 && (
+          <div class="filter-row" data-filter="soort">
+            <span class="filter-label">Soort</span>
+            <button class="chip" aria-pressed="true" data-value="">
+              Alles
+            </button>
+            {soorten.map(soort => (
+              <button
+                class="chip"
+                aria-pressed="false"
+                data-value={slugifyStr(soort)}
+              >
+                {soort}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    <div class="panel">
+      {
+        [...weeks].map(([week, posts]) => (
+          <section class="week-group">
+            <h2 class="panel-title">
+              {week >= 1 ? `Week ${week}` : "Voor de start"}
+              {week >= 1 && (
+                <span class="font-normal"> · {weekRange(week)}</span>
+              )}
+            </h2>
+            <ul>
+              {posts.map(({ data, slug }) => (
+                <Card
+                  href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+                  frontmatter={data}
+                  secHeading={false}
+                />
+              ))}
+            </ul>
+          </section>
         ))
       }
-    </ul>
+      <p id="no-results" class="opacity-60" hidden>
+        Geen posts met deze filters.
+      </p>
+    </div>
   </Main>
 
-  <Pagination
-    {currentPage}
-    {totalPages}
-    prevUrl={`${import.meta.env.BASE_URL}posts${currentPage - 1 !== 1 ? "/" + (currentPage - 1) : ""}/`}
-    nextUrl={`${import.meta.env.BASE_URL}posts/${currentPage + 1}/`}
-  />
-
-  <Footer noMarginTop={totalPages > 1} />
+  <Footer />
 </Layout>
+
+<style>
+  .filters {
+    @apply mb-4 flex flex-col gap-2;
+  }
+  .filter-row {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .filter-label {
+    @apply w-14 text-sm opacity-60;
+  }
+  .week-group + .week-group {
+    @apply mt-6;
+  }
+</style>
+
+<script>
+  // Filters live in the URL (?pijler=ux&soort=feedback) so a filtered view can be shared.
+  const params = new URLSearchParams(location.search);
+  const rows = document.querySelectorAll<HTMLElement>(".post-row");
+  const groups = document.querySelectorAll<HTMLElement>(".week-group");
+
+  function apply() {
+    const pijler = params.get("pijler") ?? "";
+    const soort = params.get("soort") ?? "";
+    let shown = 0;
+
+    rows.forEach(row => {
+      const match =
+        (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
+        (!soort || row.dataset.soort === soort);
+      row.hidden = !match;
+      if (match) shown++;
+    });
+    groups.forEach(group => {
+      group.hidden = !group.querySelector(".post-row:not([hidden])");
+    });
+    document.getElementById("no-results")!.hidden = shown > 0;
+
+    document.querySelectorAll<HTMLElement>(".filter-row").forEach(filterRow => {
+      const active = params.get(filterRow.dataset.filter!) ?? "";
+      filterRow.querySelectorAll("button").forEach(button => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.value === active)
+        );
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>(".filter-row").forEach(filterRow => {
+    filterRow.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest("button");
+      if (!button) return;
+      const value = button.dataset.value;
+      if (value) params.set(filterRow.dataset.filter!, value);
+      else params.delete(filterRow.dataset.filter!);
+      const query = params.toString();
+      history.replaceState(null, "", query ? `?${query}` : location.pathname);
+      apply();
+    });
+  });
+
+  apply();
+</script>

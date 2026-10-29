@@ -8,15 +8,22 @@ import getPagination from "@utils/getPagination";
 
 export interface Props {
   post: CollectionEntry<"blog">;
+  prev?: CollectionEntry<"blog">;
+  next?: CollectionEntry<"blog">;
 }
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const sorted = getSortedPosts(posts);
 
-  const postResult = posts.map(post => ({
-    params: { slug: post.slug },
-    props: { post },
-  }));
+  // sorted is newest first: "prev" is the older post, "next" the newer one.
+  const postResult = posts.map(post => {
+    const index = sorted.findIndex(p => p.slug === post.slug);
+    return {
+      params: { slug: post.slug },
+      props: { post, prev: sorted[index + 1], next: sorted[index - 1] },
+    };
+  });
 
   const pagePaths = getPageNumbers(posts.length).map(pageNum => ({
     params: { slug: String(pageNum) },
@@ -26,7 +33,7 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const { post } = Astro.props;
+const { post, prev, next } = Astro.props;
 
 const posts = await getCollection("blog");
 
@@ -38,4 +45,4 @@ const pagination = getPagination({
 });
 ---
 
-{post ? <PostDetails post={post} /> : <Posts {...pagination} />}
+{post ? <PostDetails {post} {prev} {next} /> : <Posts {...pagination} />}

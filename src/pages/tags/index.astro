@@ -15,8 +15,11 @@ let tags = getUniqueTags(posts);
 
 <Layout title={`Tags | ${SITE.title}`}>
   <Header activeNav="tags" />
-  <Main pageTitle="Pijlers & tags" pageDesc="Filter op pijler (UX, DESIGN, DEV) of op soort post (dagboek, feedback, ai, …).">
-    <ul>
+  <Main
+    pageTitle="Pijlers & tags"
+    pageDesc="Filter op pijler (UX, DESIGN, DEV) of op soort post (dagboek, feedback, ai, …)."
+  >
+    <ul class="panel">
       {tags.map(({ tag }) => <Tag {tag} size="lg" />)}
     </ul>
   </Main>

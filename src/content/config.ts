@@ -17,7 +17,8 @@ const blog = defineCollection({
         featured: z.boolean().optional(),
         draft: z.boolean().optional(),
         tags: z.array(z.string()).optional(),
-        pijler: z.string().optional(),
+        // One pillar (older posts) or several (a post can combine pillars).
+        pijler: z.union([z.string(), z.array(z.string())]).nullish(),
         soort: z.string().optional(),
         samenvatting: text,
         olr: z.array(z.string()).nullish(),
@@ -54,15 +55,19 @@ const blog = defineCollection({
         canonicalURL: z.string().optional(),
       })
       // Pages CMS saves pijler, soort and olr; the site expects tags and a description.
-      .transform(data => ({
-        ...data,
-        tags:
-          data.tags ??
-          [data.pijler, data.soort, ...(data.olr ?? [])].filter(
-            (tag): tag is string => !!tag
-          ),
-        description: data.description ?? (data.samenvatting || data.title),
-      })),
+      .transform(data => {
+        const pijlers = [data.pijler ?? []].flat().filter(Boolean);
+        return {
+          ...data,
+          pijlers,
+          tags:
+            data.tags ??
+            [...pijlers, data.soort, ...(data.olr ?? [])].filter(
+              (tag): tag is string => !!tag
+            ),
+          description: data.description ?? (data.samenvatting || data.title),
+        };
+      }),
 });
 
 export const collections = { blog };
