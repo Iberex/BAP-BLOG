@@ -188,3 +188,25 @@
 .soort-festival {
   --pill: var(--color-dev);
 }
+
+/* "morgen", "over 3 dagen": colour shows how close something is. */
+.when {
+  @apply inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium;
+  color: rgb(var(--when));
+  background: rgba(var(--when), 0.12);
+}
+.when[data-tone="nu"] {
+  --when: 16, 185, 129;
+}
+.when[data-tone="dringend"] {
+  --when: 225, 29, 72;
+}
+.when[data-tone="snel"] {
+  --when: 217, 119, 6;
+}
+.when[data-tone="binnenkort"] {
+  --when: 14, 165, 233;
+}
+.when[data-tone="later"] {
+  --when: 139, 92, 246;
+}

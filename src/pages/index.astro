@@ -4,6 +4,7 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
+import When from "@components/When.astro";
 import getSortedPosts from "@utils/getSortedPosts";
 import { PIJLERS, bapWeek } from "@utils/pijlers";
 import { items, formatRange, soortClass } from "@utils/agenda";
@@ -63,7 +64,10 @@ const perPijler = PIJLERS.map(pijler => ({
                 data-end={item.einde}
                 hidden
               >
-                <p class="stat-value days" />
+                <p class="flex flex-wrap items-center gap-2">
+                  <span class="stat-value">{formatRange(item)}</span>
+                  <When start={item.start} end={item.einde} />
+                </p>
                 <p class="stat-note line-clamp-1" title={item.titel}>
                   {item.titel}
                 </p>
@@ -128,7 +132,7 @@ const perPijler = PIJLERS.map(pijler => ({
                     <span class={`pill ${soortClass(item.soort)}`}>
                       {formatRange(item)}
                     </span>
-                    <span class="days opacity-50" />
+                    <When start={item.start} end={item.einde} />
                   </p>
                   <p class="mt-1 line-clamp-2 text-sm opacity-70">
                     {item.titel}
@@ -178,18 +182,6 @@ const perPijler = PIJLERS.map(pijler => ({
 <script>
   // The site is built once per change, so "upcoming" is decided in the browser.
   const today = new Date().toISOString().slice(0, 10);
-  const label = (el: HTMLElement) => {
-    const days = Math.round(
-      (Date.parse(el.dataset.start!) - Date.parse(today)) / 86400000
-    );
-    return days < 0
-      ? "bezig"
-      : days === 0
-        ? "vandaag"
-        : days === 1
-          ? "morgen"
-          : `over ${days} dagen`;
-  };
   const upcoming = (selector: string) =>
     [...document.querySelectorAll<HTMLElement>(selector)].filter(
       el => el.dataset.end! >= today
@@ -198,13 +190,11 @@ const perPijler = PIJLERS.map(pijler => ({
   upcoming("#deadlines li")
     .slice(0, 4)
     .forEach(li => {
-      li.querySelector(".days")!.textContent = label(li);
       li.hidden = false;
     });
 
   const deadline = upcoming(".deadline")[0];
   if (deadline) {
-    deadline.querySelector(".days")!.textContent = label(deadline);
     deadline.hidden = false;
   }
 
