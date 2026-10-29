@@ -21,29 +21,14 @@ const blog = defineCollection({
         pijler: z.union([z.string(), z.array(z.string())]).nullish(),
         soort: z.string().optional(),
         samenvatting: text,
-        week: z
-          .object({
-            voortgang: text,
-            ux: text,
-            design: text,
-            dev: text,
-            playtest: text,
-            feedback: text,
-            ai: text,
-            volgende: text,
-          })
-          .nullish(),
+        // Text blocks of the post type, see src/utils/soorten.ts.
+        blokken: z.record(text).nullish(),
         playtest: z
-          .object({
-            testers: count,
-            groepen: count,
-            leeftijd: text,
-            wat: text,
-            bevindingen: text,
-          })
+          .object({ testers: count, groepen: count, leeftijd: text, wat: text })
           .nullish(),
-        feedback: z.object({ bron: text, actiepunten: text }).nullish(),
-        ai: z.object({ tool: text, waarvoor: text, kritisch: text }).nullish(),
+        bron: text, // feedback: from whom, meeting: with whom
+        ai: z.object({ tool: text, waarvoor: text }).nullish(),
+        actiepunten: text,
         ogImage: image()
           .refine(img => img.width >= 1200 && img.height >= 630, {
             message: "OpenGraph image must be at least 1200 X 630 pixels!",

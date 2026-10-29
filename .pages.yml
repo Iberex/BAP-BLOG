@@ -1,79 +1,268 @@
 media:
   input: public
   output: /BAP-BLOG
+# One collection per type of post, each with only the fields that fit it.
+# Labels of the text blocks on the site: src/utils/soorten.ts.
 content:
-  - name: posts
-    label: Posts
+  - name: weekverslag
+    label: "Weekverslagen"
     type: collection
-    path: src/content/blog
+    path: src/content/blog/weekverslag
     filename: "{year}-{month}-{day}-{title}.md"
-    view:
-      fields: [ title, author, pubDatetime, draft ]
-      primary: title
-      sort: [ pubDatetime ]
-      order: desc
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
     fields:
-      - { name: title, label: Titel, type: string, required: true }
-      - name: author
+      - &titel { name: title, label: Titel, type: string, required: true }
+      - &auteur
+        name: author
         label: Wie schrijft?
         type: select
         required: true
         options: { values: [ Ibe, Tjorven, Senne ] }
-      - name: pijler
+      - &pijler
+        name: pijler
         label: "Pijler(s) – een post mag meerdere pijlers combineren"
         type: select
         required: true
         options: { multiple: true, values: [ UX, DESIGN, DEV, ALGEMEEN ] }
-      - name: soort
-        label: Soort post
-        type: select
-        required: true
-        options: { values: [ weekverslag, dagboek, research, proces, feedback, learning, ai, planning ] }
-      - { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
-      - name: week
-        label: "Weekverslag (alleen bij soort weekverslag, lege blokken worden niet getoond)"
+      - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
+      - { name: soort, type: string, hidden: true, default: weekverslag }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
         type: object
         fields:
           - { name: voortgang, label: "Voortgang: wat is er deze week gebeurd?", type: text }
-          - { name: ux, label: UX, type: text }
-          - { name: design, label: Design, type: text }
-          - { name: dev, label: Development, type: text }
+          - { name: ux, label: "UX", type: text }
+          - { name: design, label: "Design", type: text }
+          - { name: dev, label: "Development", type: text }
           - { name: playtest, label: "Playtest: wat testten we en wat zagen we?", type: text }
           - { name: feedback, label: "Feedback van klant, coach of expert desk", type: text }
           - { name: ai, label: "AI-gebruik deze week", type: text }
           - { name: volgende, label: "Volgende stappen", type: text }
+      - &body { name: body, label: "Tekst en beelden", type: rich-text }
+      - &datum
+        name: pubDatetime
+        label: Datum (staat al op vandaag)
+        type: date
+        required: true
+        options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
+      - &draft { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
+  - name: dagboek
+    label: "Dagboek"
+    type: collection
+    path: src/content/blog/dagboek
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: dagboek }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: gedaan, label: "Wat deden we?", type: text }
+          - { name: geleerd, label: "Wat leerden we?", type: text }
+          - { name: vast, label: "Waar liepen we vast?", type: text }
+          - { name: morgen, label: "Wat doen we morgen?", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: research
+    label: "Research"
+    type: collection
+    path: src/content/blog/research
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: research }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: vraag, label: "Onderzoeksvraag", type: text }
+          - { name: bronnen, label: "Bronnen en referenties (links mogen)", type: text }
+          - { name: inzichten, label: "Inzichten", type: text }
+          - { name: keuze, label: "Wat doen we ermee?", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: experiment
+    label: "Experimenten"
+    type: collection
+    path: src/content/blog/experiment
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: experiment }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: doel, label: "Wat wilden we uitproberen?", type: text }
+          - { name: aanpak, label: "Aanpak", type: text }
+          - { name: resultaat, label: "Resultaat", type: text }
+          - { name: conclusie, label: "Conclusie en volgende stap", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: playtest
+    label: "Playtests"
+    type: collection
+    path: src/content/blog/playtest
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: playtest }
       - name: playtest
-        label: "Playtest-cijfers (optioneel)"
+        label: Cijfers
         type: object
         fields:
           - { name: testers, label: "Aantal testers", type: number, options: { min: 0 } }
           - { name: groepen, label: "Aantal groepen", type: number, options: { min: 0 } }
           - { name: leeftijd, label: "Leeftijd (bv. 6-9 jaar)", type: string }
           - { name: wat, label: "Wat testten we?", type: string }
-          - { name: bevindingen, label: "Belangrijkste bevindingen", type: text }
-      - name: feedback
-        label: "Feedback (bij soort feedback)"
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
         type: object
         fields:
-          - name: bron
-            label: "Van wie?"
-            type: select
-            options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, peers ] }
-          - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
+          - { name: opzet, label: "Opzet van de test", type: text }
+          - { name: bevindingen, label: "Wat zagen we?", type: text }
+          - { name: aanpassingen, label: "Wat passen we aan?", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: feedback
+    label: "Feedback"
+    type: collection
+    path: src/content/blog/feedback
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: feedback }
+      - name: bron
+        label: "Van wie?"
+        type: select
+        options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, peers, testers ] }
+      - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: wat, label: "Wat was de feedback?", type: text }
+          - { name: reactie, label: "Wat vinden we ervan?", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: meeting
+    label: "Meetings"
+    type: collection
+    path: src/content/blog/meeting
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: meeting }
+      - name: bron
+        label: "Met wie?"
+        type: select
+        options: { values: [ klant, coach, team, expert, andere ] }
+      - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: besproken, label: "Wat bespraken we?", type: text }
+          - { name: beslissingen, label: "Beslissingen", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: ai
+    label: "AI-gebruik"
+    type: collection
+    path: src/content/blog/ai
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: ai }
       - name: ai
-        label: "AI-gebruik (bij soort ai)"
+        label: Tool
         type: object
         fields:
-          - { name: tool, label: Tool, type: string }
+          - { name: tool, label: "Welke tool?", type: string }
           - { name: waarvoor, label: Waarvoor, type: string }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: vraag, label: "Wat vroegen we?", type: text }
+          - { name: resultaat, label: "Wat kregen we?", type: text }
           - { name: kritisch, label: "Wat klopte niet / wat pasten we aan?", type: text }
-      - { name: body, label: "Tekst en beelden", type: rich-text }
-      - name: pubDatetime
-        label: Datum (staat al op vandaag)
-        type: date
-        required: true
-        options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
-      - { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
+      - *body
+      - *datum
+      - *draft
+  - name: reflectie
+    label: "Reflecties"
+    type: collection
+    path: src/content/blog/reflectie
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: reflectie }
+      - name: blokken
+        label: "Tekst (lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: onderwerp, label: "Waarover?", type: text }
+          - { name: goed, label: "Wat ging goed?", type: text }
+          - { name: beter, label: "Wat kan beter?", type: text }
+          - { name: anders, label: "Wat doen we vanaf nu anders?", type: text }
+      - *body
+      - *datum
+      - *draft
+  - name: algemeen
+    label: "Algemeen"
+    type: collection
+    path: src/content/blog/algemeen
+    filename: "{year}-{month}-{day}-{title}.md"
+    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+    fields:
+      - *titel
+      - *auteur
+      - *pijler
+      - *samenvatting
+      - { name: soort, type: string, hidden: true, default: algemeen }
+      - *body
+      - *datum
+      - *draft
   - name: planning
     label: Agenda
     type: file

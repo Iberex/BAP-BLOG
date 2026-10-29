@@ -1,23 +1,13 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { SOORTEN } from "@utils/soorten";
 
 export interface Props {
   data: CollectionEntry<"blog">["data"];
 }
 
-const { samenvatting, week, playtest, feedback, ai } = Astro.props.data;
-
-// Fixed order of the weekly report, based on the Curtain Call team blog.
-const weekBlocks = [
-  ["voortgang", "Voortgang"],
-  ["ux", "UX"],
-  ["design", "Design"],
-  ["dev", "Development"],
-  ["playtest", "Playtest"],
-  ["feedback", "Feedback"],
-  ["ai", "AI-gebruik"],
-  ["volgende", "Volgende stappen"],
-] as const;
+const { samenvatting, soort, blokken, playtest, bron, ai, actiepunten } =
+  Astro.props.data;
 
 const lines = (value?: string | null) =>
   (value ?? "")
@@ -25,93 +15,59 @@ const lines = (value?: string | null) =>
     .map(line => line.replace(/^[-*]\s*/, "").trim())
     .filter(Boolean);
 
-const testFacts = [
+// Short facts shown as one box above the text.
+const facts = [
   ["Testers", playtest?.testers],
   ["Groepen", playtest?.groepen],
   ["Leeftijd", playtest?.leeftijd],
   ["Wat getest", playtest?.wat],
+  [soort === "meeting" ? "Met" : "Van", bron],
+  ["Tool", ai?.tool],
+  ["Waarvoor", ai?.waarvoor],
 ].filter(([, value]) => value);
 
-const actions = lines(feedback?.actiepunten);
-const hasAi = ai?.tool || ai?.waarvoor || ai?.kritisch;
+const sections = (SOORTEN[soort ?? ""]?.blokken ?? [])
+  .map(([key, label]) => [label, blokken?.[key]] as const)
+  .filter(([, value]) => value);
+
+const actions = lines(actiepunten);
 ---
 
 {samenvatting && <p class="summary">{samenvatting}</p>}
 
 {
-  (testFacts.length > 0 || playtest?.bevindingen) && (
-    <section class="box" aria-label="Playtest">
-      <h2>Playtest</h2>
-      <dl>
-        {testFacts.map(([label, value]) => (
-          <div>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
+  facts.length > 0 && (
+    <dl class="box">
+      {facts.map(([label, value]) => (
+        <div>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+{
+  sections.map(([label, value]) => (
+    <section class="block">
+      <h2>{label}</h2>
+      <p class="text">{value}</p>
+    </section>
+  ))
+}
+
+{
+  actions.length > 0 && (
+    <section class="block">
+      <h2>Actiepunten</h2>
+      <ul>
+        {actions.map(action => (
+          <li>{action}</li>
         ))}
-      </dl>
-      {playtest?.bevindingen && <p class="text">{playtest.bevindingen}</p>}
+      </ul>
     </section>
   )
-}
-
-{
-  (feedback?.bron || actions.length > 0) && (
-    <section class="box" aria-label="Feedback">
-      <h2>Feedback{feedback?.bron && ` van ${feedback.bron}`}</h2>
-      {actions.length > 0 && (
-        <>
-          <p class="label">Actiepunten</p>
-          <ul>
-            {actions.map(action => (
-              <li>{action}</li>
-            ))}
-          </ul>
-        </>
-      )}
-    </section>
-  )
-}
-
-{
-  hasAi && (
-    <section class="box" aria-label="AI-gebruik">
-      <h2>AI-gebruik</h2>
-      <dl>
-        {ai?.tool && (
-          <div>
-            <dt>Tool</dt>
-            <dd>{ai.tool}</dd>
-          </div>
-        )}
-        {ai?.waarvoor && (
-          <div>
-            <dt>Waarvoor</dt>
-            <dd>{ai.waarvoor}</dd>
-          </div>
-        )}
-      </dl>
-      {ai?.kritisch && (
-        <>
-          <p class="label">Wat klopte niet / wat pasten we aan</p>
-          <p class="text">{ai.kritisch}</p>
-        </>
-      )}
-    </section>
-  )
-}
-
-{
-  week &&
-    weekBlocks.map(
-      ([key, label]) =>
-        week[key] && (
-          <section class="week">
-            <h2>{label}</h2>
-            <p class="text">{week[key]}</p>
-          </section>
-        )
-    )
 }
 
 <style>
@@ -119,27 +75,19 @@ const hasAi = ai?.tool || ai?.waarvoor || ai?.kritisch;
     @apply mb-6 text-lg opacity-80;
   }
   .box {
-    @apply mx-0 mb-6 rounded-lg bg-skin-card px-4 py-3;
+    @apply mx-0 mb-6 flex flex-wrap gap-x-8 gap-y-2 rounded-lg bg-skin-card px-4 py-3;
   }
-  .box h2,
-  .week h2 {
-    @apply mb-2 font-semibold;
-  }
-  .week {
-    @apply mx-0 mb-8 px-0;
-  }
-  .week h2 {
-    @apply text-xl;
-  }
-  dl {
-    @apply flex flex-wrap gap-x-8 gap-y-2;
-  }
-  dt,
-  .label {
+  dt {
     @apply text-sm opacity-70;
   }
+  .block {
+    @apply mx-0 mb-8 px-0;
+  }
+  .block h2 {
+    @apply mb-2 text-xl font-semibold;
+  }
   .text {
-    @apply mt-2 whitespace-pre-line;
+    @apply whitespace-pre-line;
   }
   ul {
     @apply ml-5 list-disc;

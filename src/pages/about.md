@@ -10,7 +10,7 @@ Dit is de procesblog van onze bachelorproef aan **Devine** (academiejaar 2026–
 Op [Posts](/BAP-BLOG/posts/) staan alle posts chronologisch, gegroepeerd per week. Bovenaan filter je op pijler en op soort post. Een post kan meerdere pijlers combineren.
 
 - **Pijler:** UX, Design, Development, Algemeen
-- **Soort post:** weekverslag, dagboek, research, proces, feedback, learning, ai, planning
+- **Soort post:** weekverslag, dagboek, research, experiment, playtest, feedback, meeting, ai, reflectie, algemeen
 
 Elke week schrijven we een **weekverslag** met een vaste opbouw: samenvatting, voortgang, UX, design, development, playtest, feedback, AI-gebruik en volgende stappen. Bij playtests noteren we hoeveel testers en groepen er waren.
 
