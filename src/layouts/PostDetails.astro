@@ -1,4 +1,5 @@
 ---
+import AuthorName from "@components/AuthorName.astro";
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
@@ -72,7 +73,9 @@ const layoutProps = {
       size="lg"
       className="my-2"
     />
-    <p class="opacity-80">Door {author}</p>
+    <p class="flex items-center gap-1 opacity-80">
+      Door <AuthorName name={author} />
+    </p>
     <article id="article" role="article" class="prose mx-auto mt-8 max-w-3xl">
       <Content />
     </article>

@@ -1,5 +1,6 @@
 ---
 import AboutLayout from "@layouts/AboutLayout.astro";
+import AuthorName from "@components/AuthorName.astro";
 import team from "../data/team.json";
 ---
 
@@ -12,7 +13,9 @@ import team from "../data/team.json";
       {
         team.map(member => (
           <tr>
-            <td>{member.naam}</td>
+            <td>
+              <AuthorName name={member.naam} />
+            </td>
             <td>{member.rol || "nog in te vullen"}</td>
             <td>{member.pijler}</td>
           </tr>
