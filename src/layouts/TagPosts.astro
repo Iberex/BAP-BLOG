@@ -26,11 +26,14 @@ const { currentPage, totalPages, paginatedPosts, tag, tagName } = Astro.props;
     titleTransition={tag}
     pageDesc={`Alle posts met "${tagName}".`}
   >
-    <h1 slot="title" transition:name={tag}>{`Tag:${tag}`}</h1>
+    <h1 slot="title">{`Tag:${tag}`}</h1>
     <ul>
       {
         paginatedPosts.map(({ data, slug }) => (
-          <Card href={`${import.meta.env.BASE_URL}posts/${slug}/`} frontmatter={data} />
+          <Card
+            href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+            frontmatter={data}
+          />
         ))
       }
     </ul>
