@@ -28,8 +28,52 @@ content:
         label: Soort post
         type: select
         required: true
-        options: { values: [ dagboek, research, proces, feedback, learning, ai, planning ] }
-      - { name: body, label: Tekst, type: rich-text }
+        options: { values: [ weekverslag, dagboek, research, proces, feedback, learning, ai, planning ] }
+      - { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
+      - name: olr
+        label: "Leerresultaten (optioneel)"
+        type: select
+        options:
+          multiple: true
+          values: [ OLR01-I-1, OLR02-I-1, OLR03-T-4, OLR03-I-1, OLR03-I-2, OLR04-I-2, OLR05-I-3, OLR06-I-1, OLR08-I-1, OLR09-I-1 ]
+      - name: week
+        label: "Weekverslag (alleen bij soort weekverslag, lege blokken worden niet getoond)"
+        type: object
+        fields:
+          - { name: voortgang, label: "Voortgang: wat is er deze week gebeurd?", type: text }
+          - { name: ux, label: UX, type: text }
+          - { name: design, label: Design, type: text }
+          - { name: dev, label: Development, type: text }
+          - { name: playtest, label: "Playtest: wat testten we en wat zagen we?", type: text }
+          - { name: feedback, label: "Feedback van klant, coach of expert desk", type: text }
+          - { name: ai, label: "AI-gebruik deze week", type: text }
+          - { name: volgende, label: "Volgende stappen", type: text }
+      - name: playtest
+        label: "Playtest-cijfers (optioneel)"
+        type: object
+        fields:
+          - { name: testers, label: "Aantal testers", type: number, options: { min: 0 } }
+          - { name: groepen, label: "Aantal groepen", type: number, options: { min: 0 } }
+          - { name: leeftijd, label: "Leeftijd (bv. 6-9 jaar)", type: string }
+          - { name: wat, label: "Wat testten we?", type: string }
+          - { name: bevindingen, label: "Belangrijkste bevindingen", type: text }
+      - name: feedback
+        label: "Feedback (bij soort feedback)"
+        type: object
+        fields:
+          - name: bron
+            label: "Van wie?"
+            type: select
+            options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, peers ] }
+          - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
+      - name: ai
+        label: "AI-gebruik (bij soort ai)"
+        type: object
+        fields:
+          - { name: tool, label: Tool, type: string }
+          - { name: waarvoor, label: Waarvoor, type: string }
+          - { name: kritisch, label: "Wat klopte niet / wat pasten we aan?", type: text }
+      - { name: body, label: "Tekst en beelden", type: rich-text }
       - name: pubDatetime
         label: Datum (staat al op vandaag)
         type: date

@@ -10,7 +10,10 @@ Dit is de procesblog van onze bachelorproef aan **Devine** (academiejaar 2026–
 Elke post heeft tags. Zo kan je snel filteren:
 
 - **Pijler:** UX, DESIGN, DEV, ALGEMEEN
-- **Soort post:** dagboek, research, proces, feedback, learning, ai, planning
+- **Soort post:** weekverslag, dagboek, research, proces, feedback, learning, ai, planning
+- **Leerresultaat:** de OLR-code, als de post erover gaat
+
+Elke week schrijven we een **weekverslag** met een vaste opbouw: samenvatting, voortgang, UX, design, development, playtest, feedback, AI-gebruik en volgende stappen. Bij playtests noteren we hoeveel testers en groepen er waren.
 
 - [Alle tags](/BAP-BLOG/tags/)
 - [Planning en deadlines](/BAP-BLOG/planning/)
