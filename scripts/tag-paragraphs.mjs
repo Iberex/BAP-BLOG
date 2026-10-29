@@ -1,5 +1,6 @@
-// Lets an AI model (GitHub Models, free with the workflow's GITHUB_TOKEN) decide which
-// paragraphs of the text blocks are about UX, Design, Development or AI.
+// Lets an AI model decide which paragraphs of the text blocks are about UX, Design,
+// Development or AI. Uses Google Gemini when the GEMINI_API_KEY secret is set (free tier),
+// otherwise GitHub Models with the workflow's GITHUB_TOKEN.
 // Results are cached per paragraph in .cache/fragment-tags.json, so each paragraph is
 // only sent once. Without a token (e.g. locally) this script does nothing and the site
 // falls back to keywords (src/utils/fragments.ts).
@@ -7,7 +8,18 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import yaml from "js-yaml";
 
-const TOKEN = process.env.GITHUB_TOKEN;
+const GEMINI = process.env.GEMINI_API_KEY;
+const TOKEN = GEMINI || process.env.GITHUB_TOKEN;
+// Both offer the same OpenAI-style chat API.
+const API = GEMINI
+  ? {
+      url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      model: "gemini-2.5-flash",
+    }
+  : {
+      url: "https://models.github.ai/inference/chat/completions",
+      model: "openai/gpt-4.1-mini",
+    };
 const CACHE = ".cache/fragment-tags.json";
 const BLOG = "src/content/blog";
 const TAGS = ["ux", "design", "dev", "ai"];
@@ -34,16 +46,14 @@ Kies alleen een onderwerp als de alinea er duidelijk over gaat. Een alinea mag m
 Antwoord enkel met JSON: {"1": ["dev"], "2": [], ...}.`;
 
 async function classify(texts) {
-  const response = await fetch(
-    "https://models.github.ai/inference/chat/completions",
-    {
+  const response = await fetch(API.url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4.1-mini",
+        model: API.model,
         temperature: 0,
         response_format: { type: "json_object" },
         messages: [
@@ -54,8 +64,7 @@ async function classify(texts) {
           },
         ],
       }),
-    }
-  );
+  });
   if (!response.ok) throw new Error(`${response.status} ${await response.text()}`);
   const answer = JSON.parse((await response.json()).choices[0].message.content);
   return texts.map((_, i) =>
@@ -82,7 +91,7 @@ for (const file of files) {
 }
 
 if (!TOKEN) {
-  console.log("tag-paragraphs: no GITHUB_TOKEN, using keywords");
+  console.log("tag-paragraphs: no API key or token, using keywords");
 } else if (todo.size > 0) {
   // Small batches keep each request well within the free limits.
   const list = [...todo];
