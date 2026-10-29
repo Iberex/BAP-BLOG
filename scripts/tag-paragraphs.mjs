@@ -72,13 +72,14 @@ async function classify(texts) {
   );
 }
 
-// Busy models answer 429/503 now and then; wait a bit and try again.
+// Busy models answer 429/503 or drop the connection now and then; wait and try again.
 async function withRetry(job) {
   for (const wait of [5, 20, 60]) {
     try {
       return await job();
     } catch (error) {
-      if (!/^(429|500|503)/.test(error.message)) throw error;
+      // A wrong request (400, 401, 404) will not get better by waiting.
+      if (/^4(?!29)\d\d/.test(error.message)) throw error;
       console.warn(`tag-paragraphs: busy, retrying in ${wait}s`);
       await new Promise(resolve => setTimeout(resolve, wait * 1000));
     }
