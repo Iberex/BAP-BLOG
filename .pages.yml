@@ -38,7 +38,7 @@ content:
           - { name: feedback, label: "Feedback van klant, coach of expert desk", type: text }
           - { name: ai, label: "AI-gebruik deze week", type: text }
           - { name: volgende, label: "Volgende stappen", type: text }
-      - &body { name: body, label: "Tekst en beelden", type: rich-text }
+      - &body { name: body, label: "Extra tekst en beelden (optioneel – herhaal niet wat hierboven staat)", type: rich-text }
       - &datum
         name: pubDatetime
         label: Datum (staat al op vandaag)
