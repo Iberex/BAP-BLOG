@@ -66,54 +66,37 @@ const soorten = [
         }
       </div>
     </div>
-    {
-      soorten.length > 1 && (
-        <div class="filter-row" data-filter="soort">
-          <span class="filter-label">Soort</span>
-          <button class="chip" aria-pressed="true" data-value="">
-            Alles
-          </button>
-          {soorten.map(soort => (
-            <button
-              class="chip"
-              aria-pressed="false"
-              data-value={slugifyStr(soort)}
-            >
-              {SOORTEN[soort]?.label ?? soort}
-            </button>
-          ))}
-        </div>
-      )
-    }
+
+    <div class="panel">
+      {
+        [...weeks].map(([week, posts]) => (
+          <section class="week-group">
+            <h2 class="panel-title">
+              {week >= 1 ? `Week ${week}` : "Voor de start"}
+              {week >= 1 && (
+                <span class="font-normal"> · {weekRange(week)}</span>
+              )}
+            </h2>
+            <ul>
+              {posts.map(({ data, slug }) => (
+                <Card
+                  href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+                  frontmatter={data}
+                  secHeading={false}
+                />
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+      <p id="no-results" class="opacity-60" hidden>
+        Geen posts met deze filters.
+      </p>
+    </div>
   </Main>
 
-  <div class="panel">
-    {
-      [...weeks].map(([week, posts]) => (
-        <section class="week-group">
-          <h2 class="panel-title">
-            {week >= 1 ? `Week ${week}` : "Voor de start"}
-            {week >= 1 && <span class="font-normal"> · {weekRange(week)}</span>}
-          </h2>
-          <ul>
-            {posts.map(({ data, slug }) => (
-              <Card
-                href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-                frontmatter={data}
-                secHeading={false}
-              />
-            ))}
-          </ul>
-        </section>
-      ))
-    }
-    <p id="no-results" class="opacity-60" hidden>
-      Geen posts met deze filters.
-    </p>
-  </div>
+  <Footer />
 </Layout>
-
-<Footer />
 
 <style>
   .filters {
