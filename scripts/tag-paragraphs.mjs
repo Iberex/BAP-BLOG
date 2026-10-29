@@ -14,7 +14,7 @@ const TOKEN = GEMINI || process.env.GITHUB_TOKEN;
 const API = GEMINI
   ? {
       url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      model: "gemini-2.5-flash",
+      model: "gemini-3.8-flash",
     }
   : {
       url: "https://models.github.ai/inference/chat/completions",
@@ -95,17 +95,19 @@ if (!TOKEN) {
 } else if (todo.size > 0) {
   // Small batches keep each request well within the free limits.
   const list = [...todo];
+  let done = 0;
   for (let i = 0; i < list.length; i += 20) {
     const batch = list.slice(i, i + 20);
     try {
       const tags = await classify(batch);
       batch.forEach((text, j) => (cache[hash(text)] = tags[j]));
+      done += batch.length;
     } catch (error) {
       console.warn(`tag-paragraphs: model failed, using keywords (${error.message})`);
       break;
     }
   }
-  console.log(`tag-paragraphs: labelled ${todo.size} new paragraph(s)`);
+  console.log(`tag-paragraphs: labelled ${done} of ${todo.size} new paragraph(s)`);
 }
 
 mkdirSync(".cache", { recursive: true });
