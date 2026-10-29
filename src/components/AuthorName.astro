@@ -7,6 +7,8 @@ const { name } = Astro.props;
 
 // Sticker per teamlid: zet een PNG in public/stickers/ en voeg de naam hier toe.
 const stickers: Record<string, string> = {
+  Ibe: "ibe.png",
+  Tjorven: "tjorven.png",
   Senne: "senne.png",
 };
 const sticker = stickers[name];
