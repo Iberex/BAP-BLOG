@@ -27,7 +27,7 @@ content:
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
       - { name: soort, type: string, hidden: true, default: weekverslag }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: voortgang, label: "Voortgang: wat is er deze week gebeurd?", type: text }
@@ -59,7 +59,7 @@ content:
       - *samenvatting
       - { name: soort, type: string, hidden: true, default: dagboek }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: gedaan, label: "Wat deden we?", type: text }
@@ -82,7 +82,7 @@ content:
       - *samenvatting
       - { name: soort, type: string, hidden: true, default: research }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: vraag, label: "Onderzoeksvraag", type: text }
@@ -105,7 +105,7 @@ content:
       - *samenvatting
       - { name: soort, type: string, hidden: true, default: experiment }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: doel, label: "Wat wilden we uitproberen?", type: text }
@@ -136,7 +136,7 @@ content:
           - { name: leeftijd, label: "Leeftijd (bv. 6-9 jaar)", type: string }
           - { name: wat, label: "Wat testten we?", type: string }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: opzet, label: "Opzet van de test", type: text }
@@ -163,7 +163,7 @@ content:
         options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, peers, testers ] }
       - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: wat, label: "Wat was de feedback?", type: text }
@@ -189,7 +189,7 @@ content:
         options: { values: [ klant, coach, team, expert, andere ] }
       - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: besproken, label: "Wat bespraken we?", type: text }
@@ -216,7 +216,7 @@ content:
           - { name: tool, label: "Welke tool?", type: string }
           - { name: waarvoor, label: Waarvoor, type: string }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: vraag, label: "Wat vroegen we?", type: text }
@@ -238,7 +238,7 @@ content:
       - *samenvatting
       - { name: soort, type: string, hidden: true, default: reflectie }
       - name: blokken
-        label: "Tekst (lege blokken worden niet getoond)"
+        label: "Tekst – lege blokken worden niet getoond. Tip: zet #ux, #design, #dev of #ai in een alinea, dan vind je die alinea terug via dat filter."
         type: object
         fields:
           - { name: onderwerp, label: "Waarover?", type: text }

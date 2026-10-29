@@ -210,3 +210,13 @@
 .when[data-tone="later"] {
   --when: 139, 92, 246;
 }
+
+/* Hashtag-only topics, e.g. "#ai" in a diary post. */
+.pill-ai,
+.soort-ai {
+  --pill: 139, 92, 246;
+}
+.pill-feedback,
+.soort-feedback {
+  --pill: 245, 158, 11;
+}

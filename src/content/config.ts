@@ -1,5 +1,6 @@
 import { SITE } from "@config";
 import { defineCollection, z } from "astro:content";
+import { fragments } from "../utils/fragments";
 
 // Pages CMS stores empty fields as "" or null, so every extra field is optional.
 const text = z.string().nullish();
@@ -41,12 +42,19 @@ const blog = defineCollection({
       // Pages CMS saves pijler and soort; the site expects tags and a description.
       .transform(data => {
         const pijlers = [data.pijler ?? []].flat().filter(Boolean);
+        // Hashtags in the text blocks ("#dev") also make the post findable under that tag.
+        const fragmentTags = fragments(data).flatMap(f => f.tags);
         return {
           ...data,
           pijlers,
-          tags:
-            data.tags ??
-            [...pijlers, data.soort].filter((tag): tag is string => !!tag),
+          fragmentTags: [...new Set(fragmentTags)],
+          tags: data.tags ?? [
+            ...new Set(
+              [...pijlers, data.soort, ...fragmentTags]
+                .filter((tag): tag is string => !!tag)
+                .map(tag => tag.toLowerCase())
+            ),
+          ],
           description: data.description ?? (data.samenvatting || data.title),
         };
       }),

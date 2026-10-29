@@ -1,6 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { SOORTEN } from "@utils/soorten";
+import { paragraphs, tagsIn, withoutTags, fragmentId } from "@utils/fragments";
+import { pijlerLabel } from "@utils/pijlers";
 
 export interface Props {
   data: CollectionEntry<"blog">["data"];
@@ -26,9 +28,18 @@ const facts = [
   ["Waarvoor", ai?.waarvoor],
 ].filter(([, value]) => value);
 
+// Each paragraph gets an id so a tag filter can link straight to it.
 const sections = (SOORTEN[soort ?? ""]?.blokken ?? [])
-  .map(([key, label]) => [label, blokken?.[key]] as const)
-  .filter(([, value]) => value);
+  .map(([key, label]) => ({
+    label,
+    paragraphs: paragraphs(blokken?.[key]).map((text, index) => ({
+      id: fragmentId(key, index),
+      tags: tagsIn(text),
+      text: withoutTags(text),
+    })),
+  }))
+  .filter(section => section.paragraphs.length > 0);
+const tagLabel = (tag: string) => SOORTEN[tag]?.label ?? pijlerLabel(tag);
 
 const actions = lines(actiepunten);
 ---
@@ -49,10 +60,22 @@ const actions = lines(actiepunten);
 }
 
 {
-  sections.map(([label, value]) => (
+  sections.map(section => (
     <section class="block">
-      <h2>{label}</h2>
-      <p class="text">{value}</p>
+      <h2>{section.label}</h2>
+      {section.paragraphs.map(paragraph => (
+        <p
+          id={paragraph.id}
+          class:list={["text", { tagged: paragraph.tags.length > 0 }]}
+        >
+          {paragraph.tags.map(tag => (
+            <span class={`pill pill-${tag} soort-${tag} mr-1.5 align-middle`}>
+              {tagLabel(tag)}
+            </span>
+          ))}
+          {paragraph.text}
+        </p>
+      ))}
     </section>
   ))
 }
@@ -86,8 +109,14 @@ const actions = lines(actiepunten);
   .block h2 {
     @apply mb-2 text-xl font-semibold;
   }
-  .text {
-    @apply whitespace-pre-line;
+  .text + .text {
+    @apply mt-3;
+  }
+  .text.tagged {
+    @apply scroll-mt-6;
+  }
+  .text:target {
+    @apply -mx-2 rounded-md bg-skin-card px-2 py-1;
   }
   ul {
     @apply ml-5 list-disc;

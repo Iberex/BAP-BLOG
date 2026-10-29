@@ -1,6 +1,7 @@
 import { LOCALE } from "@config";
 import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel } from "@utils/pijlers";
+import { fragments } from "@utils/fragments";
 import type { CollectionEntry } from "astro:content";
 
 export interface Props {
@@ -14,12 +15,14 @@ export default function Card({ href, frontmatter, secHeading = true }: Props) {
   const { title, pubDatetime, pijlers, soort, author } = frontmatter;
   const Heading = secHeading ? "h2" : "h3";
   const date = new Date(pubDatetime);
+  const found = fragments(frontmatter);
+  const tagged = found.flatMap(f => f.tags);
 
   return (
     <li
       className="post-row border-b border-skin-line last:border-b-0"
-      data-pijlers={pijlers.map(p => slugifyStr(p)).join(" ")}
-      data-soort={soort ? slugifyStr(soort) : ""}
+      data-pijlers={[...pijlers.map(p => slugifyStr(p)), ...tagged].join(" ")}
+      data-soort={[soort ? slugifyStr(soort) : "", ...tagged].join(" ")}
     >
       <a
         href={href}
@@ -51,6 +54,18 @@ export default function Card({ href, frontmatter, secHeading = true }: Props) {
           {soort && <span className="pill pill-soort">{soort}</span>}
         </span>
       </a>
+      {/* Tagged paragraphs ("#dev"), shown by the filter on the posts page. */}
+      {found.map(fragment => (
+        <a
+          key={fragment.id}
+          href={`${href}#${fragment.id}`}
+          className="fragment mb-3 ml-[5.5rem] hidden border-l-2 border-skin-line pl-3 text-sm opacity-70 hover:opacity-100"
+          data-tags={fragment.tags.join(" ")}
+        >
+          <span className="font-medium">{fragment.label}</span>{" "}
+          <span className="line-clamp-2">{fragment.text}</span>
+        </a>
+      ))}
     </li>
   );
 }

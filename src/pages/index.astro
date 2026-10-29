@@ -18,7 +18,9 @@ const recent = posts.filter(({ data }) => !data.featured).slice(0, 6);
 const perPijler = PIJLERS.map(pijler => ({
   ...pijler,
   count: posts.filter(({ data }) =>
-    data.pijlers.some(p => slugifyStr(p) === pijler.key)
+    [...data.pijlers.map(p => slugifyStr(p)), ...data.fragmentTags].includes(
+      pijler.key
+    )
   ).length,
 }));
 ---
