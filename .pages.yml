@@ -171,7 +171,7 @@ content:
       - name: bron
         label: "Van wie?"
         type: select
-        options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, peers, testers ] }
+        options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, studenten met dezelfde klant, andere studenten, testers ] }
       - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
