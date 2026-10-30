@@ -16,6 +16,7 @@ const {
   ai,
   actiepunten,
   beelden,
+  bestanden,
   fragments,
 } = Astro.props.data;
 
@@ -49,6 +50,16 @@ const sections = (SOORTEN[soort ?? ""]?.blokken ?? [])
   .filter(section => section.paragraphs.length > 0);
 
 const actions = lines(actiepunten);
+
+// "/BAP-BLOG/bestanden/plan.pdf" -> name "plan.pdf", type "PDF".
+const files = bestanden.map(({ src, naam }) => {
+  const file = decodeURIComponent(src!.split("/").pop() ?? "");
+  return {
+    src,
+    naam: naam || file,
+    type: file.split(".").pop()?.toUpperCase(),
+  };
+});
 ---
 
 {samenvatting && <p class="summary">{samenvatting}</p>}
@@ -105,6 +116,24 @@ const actions = lines(actiepunten);
 }
 
 {
+  files.length > 0 && (
+    <section class="block">
+      <h2>Bestanden</h2>
+      <ul class="files">
+        {files.map(file => (
+          <li>
+            <a href={file.src} target="_blank" rel="noopener">
+              <span class="file-type">{file.type}</span>
+              {file.naam}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+{
   actions.length > 0 && (
     <section class="block">
       <h2>Actiepunten</h2>
@@ -153,6 +182,18 @@ const actions = lines(actiepunten);
   }
   figcaption {
     @apply mt-1 text-sm opacity-70;
+  }
+  .files {
+    @apply ml-0 list-none;
+  }
+  .files a {
+    @apply flex items-center gap-3 rounded-lg bg-skin-card px-3 py-2 hover:underline;
+  }
+  .files li + li {
+    @apply mt-2;
+  }
+  .file-type {
+    @apply rounded border border-skin-line px-1.5 text-xs font-medium opacity-70;
   }
   ul {
     @apply ml-5 list-disc;
