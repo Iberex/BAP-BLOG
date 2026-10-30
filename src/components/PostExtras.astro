@@ -13,6 +13,7 @@ const {
   blokken,
   playtest,
   bron,
+  opdracht,
   ai,
   actiepunten,
   beelden,
@@ -33,6 +34,7 @@ const facts = [
   ["Leeftijd", playtest?.leeftijd],
   ["Wat getest", playtest?.wat],
   [soort === "meeting" ? "Met" : "Van", bron],
+  ["Opdracht", opdracht],
   ["Tool", ai?.tool],
   ["Waarvoor", ai?.waarvoor],
 ].filter(([, value]) => value);

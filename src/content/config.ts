@@ -28,6 +28,7 @@ const blog = defineCollection({
           .object({ testers: count, groepen: count, leeftijd: text, wat: text })
           .nullish(),
         bron: text, // feedback: from whom, meeting: with whom
+        opdracht: text, // feedback: which assignment or part it is about
         ai: z.object({ tool: text, waarvoor: text }).nullish(),
         actiepunten: text,
         // Pictures uploaded in the CMS, shown as a grid below the text blocks.

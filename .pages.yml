@@ -184,6 +184,7 @@ content:
         label: "Van wie?"
         type: select
         options: { values: [ klant, coach, expert desk UX, expert desk DESIGN, expert desk DEV, studenten met dezelfde klant, andere studenten, testers ] }
+      - { name: opdracht, label: "Over welke opdracht of welk deel? (bv. concept-pitch, moodboard, prototype v1)", type: string }
       - { name: actiepunten, label: "Actiepunten (één per regel)", type: text }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
