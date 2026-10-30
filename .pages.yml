@@ -37,7 +37,15 @@ content:
           - { name: feedback, label: "Feedback van klant, coach of expert desk", type: text }
           - { name: ai, label: "AI-gebruik deze week", type: text }
           - { name: volgende, label: "Volgende stappen", type: text }
-      - &body { name: body, label: "Extra tekst en beelden (optioneel – herhaal niet wat hierboven staat)", type: rich-text }
+      - &beelden
+        name: beelden
+        label: "Beelden – schetsen, foto's, screenshots van wat je deed"
+        type: object
+        list: true
+        fields:
+          - { name: src, label: Beeld, type: image, required: true, options: { input: public/beelden, output: /BAP-BLOG/beelden } }
+          - { name: bijschrift, label: "Bijschrift (wat zie je?)", type: string }
+      - &body { name: body, label: "Extra tekst (optioneel – herhaal niet wat hierboven staat)", type: rich-text }
       - &datum
         name: pubDatetime
         label: Datum (staat al op vandaag)
@@ -65,6 +73,7 @@ content:
           - { name: geleerd, label: "Wat leerden we?", type: text }
           - { name: vast, label: "Waar liepen we vast?", type: text }
           - { name: morgen, label: "Wat doen we morgen?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -88,6 +97,7 @@ content:
           - { name: bronnen, label: "Bronnen en referenties (links mogen)", type: text }
           - { name: inzichten, label: "Inzichten", type: text }
           - { name: keuze, label: "Wat doen we ermee?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -111,6 +121,7 @@ content:
           - { name: aanpak, label: "Aanpak", type: text }
           - { name: resultaat, label: "Resultaat", type: text }
           - { name: conclusie, label: "Conclusie en volgende stap", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -141,6 +152,7 @@ content:
           - { name: opzet, label: "Opzet van de test", type: text }
           - { name: bevindingen, label: "Wat zagen we?", type: text }
           - { name: aanpassingen, label: "Wat passen we aan?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -167,6 +179,7 @@ content:
         fields:
           - { name: wat, label: "Wat was de feedback?", type: text }
           - { name: reactie, label: "Wat vinden we ervan?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -193,6 +206,7 @@ content:
         fields:
           - { name: besproken, label: "Wat bespraken we?", type: text }
           - { name: beslissingen, label: "Beslissingen", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -221,6 +235,7 @@ content:
           - { name: vraag, label: "Wat vroegen we?", type: text }
           - { name: resultaat, label: "Wat kregen we?", type: text }
           - { name: kritisch, label: "Wat klopte niet / wat pasten we aan?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -244,6 +259,7 @@ content:
           - { name: goed, label: "Wat ging goed?", type: text }
           - { name: beter, label: "Wat kan beter?", type: text }
           - { name: anders, label: "Wat doen we vanaf nu anders?", type: text }
+      - *beelden
       - *body
       - *datum
       - *draft
@@ -259,6 +275,7 @@ content:
       - *pijler
       - *samenvatting
       - { name: soort, type: string, hidden: true, default: algemeen }
+      - *beelden
       - *body
       - *datum
       - *draft

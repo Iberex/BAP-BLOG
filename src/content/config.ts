@@ -30,6 +30,11 @@ const blog = defineCollection({
         bron: text, // feedback: from whom, meeting: with whom
         ai: z.object({ tool: text, waarvoor: text }).nullish(),
         actiepunten: text,
+        // Pictures uploaded in the CMS, shown as a grid below the text blocks.
+        beelden: z
+          .array(z.object({ src: text, bijschrift: text }))
+          .nullish()
+          .transform(list => (list ?? []).filter(beeld => beeld.src)),
         ogImage: image()
           .refine(img => img.width >= 1200 && img.height >= 630, {
             message: "OpenGraph image must be at least 1200 X 630 pixels!",

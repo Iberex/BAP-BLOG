@@ -15,6 +15,7 @@ const {
   bron,
   ai,
   actiepunten,
+  beelden,
   fragments,
 } = Astro.props.data;
 
@@ -82,6 +83,28 @@ const actions = lines(actiepunten);
 }
 
 {
+  beelden.length > 0 && (
+    <section class="block">
+      <h2>Beelden</h2>
+      <div class="beelden">
+        {beelden.map(beeld => (
+          <figure>
+            <a href={beeld.src} target="_blank" rel="noopener">
+              <img
+                src={beeld.src}
+                alt={beeld.bijschrift ?? ""}
+                loading="lazy"
+              />
+            </a>
+            {beeld.bijschrift && <figcaption>{beeld.bijschrift}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+{
   actions.length > 0 && (
     <section class="block">
       <h2>Actiepunten</h2>
@@ -118,6 +141,18 @@ const actions = lines(actiepunten);
   }
   .text:target {
     @apply -mx-2 rounded-md bg-skin-card px-2 py-1;
+  }
+  .beelden {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .beelden figure {
+    @apply m-0;
+  }
+  .beelden img {
+    @apply aspect-[4/3] w-full rounded-lg border border-skin-line object-cover;
+  }
+  figcaption {
+    @apply mt-1 text-sm opacity-70;
   }
   ul {
     @apply ml-5 list-disc;

@@ -12,8 +12,16 @@ export interface Props {
 
 // One compact row: date, title, pillars and type. No excerpt, so a list stays easy to scan.
 export default function Card({ href, frontmatter, secHeading = true }: Props) {
-  const { title, pubDatetime, pijlers, soort, author, fragments, onderwerpen } =
-    frontmatter;
+  const {
+    title,
+    pubDatetime,
+    pijlers,
+    soort,
+    author,
+    fragments,
+    onderwerpen,
+    beelden,
+  } = frontmatter;
   const Heading = secHeading ? "h2" : "h3";
   const date = new Date(pubDatetime);
 
@@ -36,13 +44,23 @@ export default function Card({ href, frontmatter, secHeading = true }: Props) {
             month: "short",
           })}
         </time>
-        <Heading className="font-medium group-hover:underline group-hover:underline-offset-4">
-          {title}
-          {author && (
-            <span className="ml-2 text-sm font-normal opacity-50">
-              {author}
-            </span>
+        <Heading className="flex items-center gap-3 font-medium group-hover:underline group-hover:underline-offset-4">
+          {beelden[0] && (
+            <img
+              src={beelden[0].src!}
+              alt=""
+              loading="lazy"
+              className="h-9 w-12 shrink-0 rounded border border-skin-line object-cover"
+            />
           )}
+          <span>
+            {title}
+            {author && (
+              <span className="ml-2 text-sm font-normal opacity-50">
+                {author}
+              </span>
+            )}
+          </span>
         </Heading>
         <span className="col-start-2 flex flex-wrap gap-1.5 sm:col-start-3 sm:justify-end">
           {soort && (
