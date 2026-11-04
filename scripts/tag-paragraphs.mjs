@@ -1,6 +1,6 @@
 // Lets an AI model decide which paragraphs of the text blocks are about UX, Design,
 // Development or AI. Uses Google Gemini when the GEMINI_API_KEY secret is set (free tier),
-// otherwise GitHub Models with the workflow's GITHUB_TOKEN.
+// and GitHub Models with the workflow's GITHUB_TOKEN as backup.
 // Results are cached per paragraph in .cache/fragment-tags.json, so each paragraph is
 // only sent once. Without a token (e.g. locally) this script does nothing and the site
 // falls back to keywords (src/utils/fragments.ts).
@@ -8,18 +8,22 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import yaml from "js-yaml";
 
-const GEMINI = process.env.GEMINI_API_KEY;
-const TOKEN = GEMINI || process.env.GITHUB_TOKEN;
-// Both offer the same OpenAI-style chat API.
-const API = GEMINI
-  ? {
-      url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      model: "gemini-3.8-flash",
-    }
-  : {
-      url: "https://models.github.ai/inference/chat/completions",
-      model: "openai/gpt-4.1-mini",
-    };
+// Both offer the same OpenAI-style chat API. Gemini goes first; when it is busy or
+// down, GitHub Models (workflow GITHUB_TOKEN) takes over, so new posts still get labels.
+const PROVIDERS = [
+  process.env.GEMINI_API_KEY && {
+    name: "gemini",
+    token: process.env.GEMINI_API_KEY,
+    url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    model: "gemini-3.8-flash",
+  },
+  process.env.GITHUB_TOKEN && {
+    name: "github",
+    token: process.env.GITHUB_TOKEN,
+    url: "https://models.github.ai/inference/chat/completions",
+    model: "openai/gpt-4.1-mini",
+  },
+].filter(Boolean);
 const CACHE = ".cache/fragment-tags.json";
 const BLOG = "src/content/blog";
 const TAGS = ["ux", "design", "dev", "ai"];
@@ -45,11 +49,11 @@ Geef per alinea de onderwerpen waar ze echt over gaat:
 Kies alleen een onderwerp als de alinea er duidelijk over gaat. Een alinea mag meerdere of geen onderwerpen hebben. Iets bouwen is "dev"; wat gebruikers ermee doen is "ux".
 Antwoord enkel met JSON: {"1": ["dev"], "2": [], ...}.`;
 
-async function classify(texts) {
+async function classify(API, texts) {
   const response = await fetch(API.url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${API.token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -72,9 +76,10 @@ async function classify(texts) {
   );
 }
 
-// Busy models answer 429/503 or drop the connection now and then; wait and try again.
+// Busy models answer 429/503 or drop the connection now and then; wait briefly and try
+// again. Kept short so a busy model does not hold up the deploy for minutes.
 async function withRetry(job) {
-  for (const wait of [5, 20, 60]) {
+  for (const wait of [3, 10]) {
     try {
       return await job();
     } catch (error) {
@@ -105,7 +110,21 @@ for (const file of files) {
       if (!(hash(paragraph) in cache)) todo.add(paragraph);
 }
 
-if (!TOKEN) {
+// Labels one batch with the first provider that answers.
+async function classifyAny(batch) {
+  let lastError;
+  for (const api of PROVIDERS) {
+    try {
+      return await withRetry(() => classify(api, batch));
+    } catch (error) {
+      lastError = error;
+      console.warn(`tag-paragraphs: ${api.name} failed (${error.message.slice(0, 200)})`);
+    }
+  }
+  throw lastError;
+}
+
+if (PROVIDERS.length === 0) {
   console.log("tag-paragraphs: no API key or token, using keywords");
 } else if (todo.size > 0) {
   // Small batches keep each request well within the free limits.
@@ -114,11 +133,11 @@ if (!TOKEN) {
   for (let i = 0; i < list.length; i += 20) {
     const batch = list.slice(i, i + 20);
     try {
-      const tags = await withRetry(() => classify(batch));
+      const tags = await classifyAny(batch);
       batch.forEach((text, j) => (cache[hash(text)] = tags[j]));
       done += batch.length;
-    } catch (error) {
-      console.warn(`tag-paragraphs: model failed, using keywords (${error.message})`);
+    } catch {
+      console.warn("tag-paragraphs: all models failed, using keywords");
       break;
     }
   }
