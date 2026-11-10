@@ -3,13 +3,12 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import PostExtras from "@components/PostExtras.astro";
-import Datetime from "@components/Datetime";
 import { vimeoEmbed } from "@utils/vimeo";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel, bapWeek } from "@utils/pijlers";
 import { SOORTEN } from "@utils/soorten";
-import { SITE } from "@config";
+import { LOCALE, SITE } from "@config";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -58,40 +57,11 @@ const layoutProps = {
 <Layout {...layoutProps}>
   <Header />
 
-  <main id="main-content">
-    <div class="post-top">
-      <a href={`${base}posts/`} class="post-back plain">alle posts</a>
-      {
-        post.data.beelden[0] && (
-          <img src={post.data.beelden[0].src!} alt="" class="post-image" />
-        )
-      }
-      <h1 class="post-title">{title}</h1>
-      <div class="post-date">
-        <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} />
-        <span>door {author}</span>
-      </div>
-      {
-        post.data.samenvatting && (
-          <p class="post-intro">{post.data.samenvatting}</p>
-        )
-      }
-    </div>
+  <main id="main-content" class="post">
+    <a href={`${base}posts/`} class="post-back">alle posts</a>
 
-    <div class="post-content">
-      {
-        vimeo && (
-          <iframe
-            src={vimeo}
-            title={title}
-            width="640"
-            height="360"
-            allow="fullscreen; picture-in-picture"
-            allowfullscreen
-          />
-        )
-      }
-      <p class="mb-6 flex flex-wrap items-center gap-1.5">
+    <header class="post-head">
+      <p class="post-tags">
         {
           soort && (
             <a
@@ -112,8 +82,41 @@ const layoutProps = {
             </a>
           ))
         }
-        {week >= 1 && <span class="ml-1 text-xs opacity-50">Week {week}</span>}
       </p>
+      <h1 class="post-title">{title}</h1>
+      <p class="post-meta">
+        <time datetime={new Date(pubDatetime).toISOString()}>
+          {
+            new Date(pubDatetime).toLocaleDateString(LOCALE.langTag, {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
+          }
+        </time>
+        <span>door {author}</span>
+        {week >= 1 && <span>week {week}</span>}
+      </p>
+    </header>
+
+    {
+      post.data.beelden[0] && (
+        <img src={post.data.beelden[0].src!} alt="" class="post-image" />
+      )
+    }
+    {
+      vimeo && (
+        <iframe
+          src={vimeo}
+          title={title}
+          class="post-video"
+          allow="fullscreen; picture-in-picture"
+          allowfullscreen
+        />
+      )
+    }
+
+    <div class="post-content">
       <PostExtras data={post.data} />
       <article id="article" role="article" class="prose max-w-none">
         <Content />
@@ -123,12 +126,25 @@ const layoutProps = {
     <nav class="post-buttons" aria-label="Andere posts">
       {
         next ? (
-          <a href={`${base}posts/${next.slug}/`}>← volgende post</a>
+          <a href={`${base}posts/${next.slug}/`} class="post-nav">
+            <span>← volgende post</span>
+            <strong>{next.data.title}</strong>
+          </a>
         ) : (
           <span />
         )
       }
-      {prev && <a href={`${base}posts/${prev.slug}/`}>vorige post →</a>}
+      {
+        prev && (
+          <a
+            href={`${base}posts/${prev.slug}/`}
+            class="post-nav post-nav--prev"
+          >
+            <span>vorige post →</span>
+            <strong>{prev.data.title}</strong>
+          </a>
+        )
+      }
     </nav>
   </main>
   <Footer />
