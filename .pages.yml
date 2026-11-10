@@ -24,7 +24,7 @@ content:
         type: select
         options: { multiple: true, values: [ UX, DESIGN, DEV ] }
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
-      - &video { name: video, label: "Video – plak een Vimeo-link (unlisted mag)", type: string }
+      - &video { name: video, label: "Vimeo-video (optioneel) – plak de link, leeg laten = geen video", type: string }
       - { name: soort, type: string, hidden: true, default: weekverslag }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
