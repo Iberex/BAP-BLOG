@@ -81,5 +81,5 @@ blokken:
     een camera hebt, wordt het vooral een creatieve vraag: wat wil je ermee
     doen?"
 pubDatetime: 2026-11-10T16:31:00Z
-draft: true
+draft: false
 ---
