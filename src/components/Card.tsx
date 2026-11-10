@@ -19,6 +19,7 @@ export default function Card({ href, frontmatter }: Props) {
     beelden,
     fragments,
     samenvatting,
+    author,
   } = frontmatter;
   const date = new Date(pubDatetime);
 
@@ -47,6 +48,7 @@ export default function Card({ href, frontmatter }: Props) {
               year: "numeric",
             })}
           </time>
+          {author && <span>{author}</span>}
         </p>
         <h4 className="card__title">{title}</h4>
         <p className="card__text">{samenvatting}</p>

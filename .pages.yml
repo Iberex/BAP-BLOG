@@ -325,23 +325,6 @@ content:
         fields:
           - { name: naam, label: Naam, type: string, required: true }
           - { name: url, label: Link, type: string, required: true }
-  - name: planning
-    label: Agenda
-    type: file
-    path: src/data/planning.json
-    format: json
-    list: true
-    fields:
-      - { name: titel, label: Wat, type: string, required: true }
-      - { name: start, label: Datum, type: date, required: true, options: { format: yyyy-MM-dd } }
-      - { name: einde, label: "Tot (alleen bij meerdere dagen)", type: date, options: { format: yyyy-MM-dd } }
-      - { name: tijd, label: "Uur (bv. 'vóór 22u' of '13.30–17.30')", type: string }
-      - name: soort
-        label: Soort
-        type: select
-        required: true
-        default: andere
-        options: { values: [ deadline, presentatie, expert desk, festival, andere ] }
   - name: team
     label: Team
     type: file
