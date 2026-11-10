@@ -49,6 +49,7 @@ export default function Card({ href, frontmatter }: Props) {
           </time>
         </p>
         <h4 className="card__title">{title}</h4>
+        <p className="card__text">{samenvatting}</p>
       </a>
       {(fragments.length > 0 || samenvatting) && (
         <div className="card__fragments" hidden>

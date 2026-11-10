@@ -61,30 +61,18 @@ const layoutProps = {
     <a href={`${base}posts/`} class="post-back">alle posts</a>
 
     <header class="post-head">
-      <p class="post-tags">
+      <h1 class="post-title">{title}</h1>
+      <p class="post-meta">
         {
           soort && (
             <a
               href={`${base}posts/?soort=${slugifyStr(soort)}`}
-              class={`type soort-${slugifyStr(soort)}`}
+              class="post-soort"
             >
               {SOORTEN[soort]?.label ?? soort}
             </a>
           )
         }
-        {
-          pijlers.map(p => (
-            <a
-              href={`${base}posts/?pijler=${slugifyStr(p)}`}
-              class={`pill pill-${slugifyStr(p)}`}
-            >
-              {pijlerLabel(p)}
-            </a>
-          ))
-        }
-      </p>
-      <h1 class="post-title">{title}</h1>
-      <p class="post-meta">
         <time datetime={new Date(pubDatetime).toISOString()}>
           {
             new Date(pubDatetime).toLocaleDateString(LOCALE.langTag, {
@@ -100,19 +88,18 @@ const layoutProps = {
     </header>
 
     {
-      post.data.beelden[0] && (
-        <img src={post.data.beelden[0].src!} alt="" class="post-image" />
-      )
-    }
-    {
-      vimeo && (
+      vimeo ? (
         <iframe
           src={vimeo}
           title={title}
-          class="post-video"
+          class="post-media"
           allow="fullscreen; picture-in-picture"
           allowfullscreen
         />
+      ) : post.data.beelden[0] ? (
+        <img src={post.data.beelden[0].src!} alt="" class="post-media" />
+      ) : (
+        <div class="post-media post-media--blank" />
       )
     }
 
@@ -121,6 +108,20 @@ const layoutProps = {
       <article id="article" role="article" class="prose max-w-none">
         <Content />
       </article>
+      {
+        pijlers.length > 0 && (
+          <p class="post-pijlers">
+            {pijlers.map(p => (
+              <a
+                href={`${base}posts/?pijler=${slugifyStr(p)}`}
+                class={`pill pill-${slugifyStr(p)}`}
+              >
+                {pijlerLabel(p)}
+              </a>
+            ))}
+          </p>
+        )
+      }
     </div>
 
     <nav class="post-buttons" aria-label="Andere posts">

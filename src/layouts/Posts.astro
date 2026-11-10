@@ -133,10 +133,10 @@ const soorten = [
         box
           .querySelectorAll<HTMLElement>(".fragment:not(.card__summary)")
           .forEach(fragment => {
-            const show =
+            const match =
               !!pijler && fragment.dataset.tags!.split(" ").includes(pijler);
-            fragment.hidden = !show;
-            if (show) count++;
+            fragment.hidden = !match || count >= 2;
+            if (match) count++;
           });
         const summary = box.querySelector<HTMLElement>(".card__summary");
         const useSummary = !!pijler && count === 0 && !!summary;
