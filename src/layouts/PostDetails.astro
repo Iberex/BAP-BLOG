@@ -31,7 +31,7 @@ const {
   pijlers,
   soort,
 } = post.data;
-const vimeo = vimeoEmbed(post.data.video);
+const vimeo = vimeoEmbed(post.data.video ?? post.data.videos[0]?.link);
 
 const { Content } = await post.render();
 

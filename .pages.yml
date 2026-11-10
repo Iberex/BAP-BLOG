@@ -24,10 +24,9 @@ content:
         type: select
         options: { multiple: true, values: [ UX, DESIGN, DEV ] }
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
-      - &video { name: video, label: "Vimeo-video (optioneel) – plak de link, leeg laten = geen video", type: string }
       - &videos
         name: videos
-        label: "Meer video's (optioneel) – komen onder de tekst"
+        label: "Video's (optioneel) – de eerste komt bovenaan, de rest onder de tekst"
         type: object
         list: true
         fields:
@@ -81,7 +80,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: dagboek }
       - name: blokken
@@ -108,7 +106,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: research }
       - name: blokken
@@ -135,7 +132,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: experiment }
       - name: blokken
@@ -162,7 +158,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: playtest }
       - name: playtest
@@ -196,7 +191,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: feedback }
       - name: bron
@@ -227,7 +221,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: meeting }
       - name: bron
@@ -257,7 +250,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: ai }
       - name: ai
@@ -289,7 +281,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: reflectie }
       - name: blokken
@@ -316,7 +307,6 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
-      - *video
       - *videos
       - { name: soort, type: string, hidden: true, default: algemeen }
       - *beelden

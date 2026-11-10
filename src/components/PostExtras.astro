@@ -16,9 +16,12 @@ const {
   actiepunten,
   beelden,
   bestanden,
-  videos,
+  videos: allVideos,
+  video,
   fragments,
 } = Astro.props.data;
+
+const videos = video ? allVideos : allVideos.slice(1);
 
 const lines = (value?: string | null) =>
   (value ?? "")
