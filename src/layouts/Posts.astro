@@ -36,9 +36,6 @@ const soorten = [
   <main id="main-content" class="page">
     <h2 class="page-title">Blog</h2>
     <div class="filters" aria-label="Filters">
-      <a href={`${import.meta.env.BASE_URL}search/`} class="search-link">
-        zoeken in alle posts →
-      </a>
       <div class="filter-row" data-filter="soort">
         <span class="filter-label">Soort</span>
         <button class="chip" aria-pressed="true" data-value="">Alles</button>
@@ -100,9 +97,6 @@ const soorten = [
 <style>
   .filters {
     @apply mb-12 flex flex-col gap-2 text-base;
-  }
-  .search-link {
-    @apply mb-2 self-start text-sm opacity-60 hover:underline hover:underline-offset-4 hover:opacity-100;
   }
   .filter-row {
     @apply flex flex-wrap items-center gap-2;
