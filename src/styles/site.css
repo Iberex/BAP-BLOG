@@ -277,17 +277,22 @@ a:hover {
 .page-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 .quiet-link {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background-color: var(--card);
   font-size: var(--fs-sm);
-  color: var(--muted);
-  opacity: 0.7;
+  font-weight: 500;
+  color: var(--ink);
 }
 .quiet-link:hover {
-  opacity: 1;
+  border-color: var(--blue);
+  color: var(--blue);
 }
 .page-title {
   margin: var(--space-l) 0 var(--space-m);
