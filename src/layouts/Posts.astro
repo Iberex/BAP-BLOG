@@ -34,7 +34,15 @@ const soorten = [
 <Layout title={`Posts | ${SITE.title}`}>
   <Header activeNav="posts" />
   <main id="main-content" class="page">
-    <h2 class="page-title">Blog</h2>
+    <div class="page-head">
+      <h2 class="page-title">Blog</h2>
+      <a
+        href="https://app.pagescms.org/iberex/BAP-BLOG"
+        target="_blank"
+        rel="noopener"
+        class="quiet-link">+ nieuwe post</a
+      >
+    </div>
     <div class="filters" aria-label="Filters">
       <div class="filter-row" data-filter="soort">
         <span class="filter-label">Soort</span>
