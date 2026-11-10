@@ -337,11 +337,3 @@ content:
         label: Pijler
         type: select
         options: { values: [ UX, DESIGN, DEV ] }
-  - name: about
-    label: Over deze blog
-    type: file
-    path: src/pages/about.md
-    fields:
-      - { name: layout, type: string, hidden: true, default: "../layouts/AboutLayout.astro" }
-      - { name: title, label: Titel, type: string }
-      - { name: body, label: Inhoud, type: rich-text, options: { input: public/assets, output: /BAP-BLOG/assets } }

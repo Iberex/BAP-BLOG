@@ -2,7 +2,7 @@
 import home from "../data/home.json";
 
 export interface Props {
-  activeNav?: "posts" | "tags" | "about" | "planning" | "team";
+  activeNav?: "posts" | "tags" | "planning" | "team";
 }
 
 const { activeNav } = Astro.props;
@@ -11,7 +11,6 @@ const items = [
   { key: "posts", label: "blog", href: `${base}posts/` },
   { key: "planning", label: "planning", href: `${base}planning/` },
   { key: "team", label: "team", href: `${base}team/` },
-  { key: "about", label: "over", href: `${base}about/` },
 ];
 ---
 

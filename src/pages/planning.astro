@@ -61,7 +61,15 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
 <Layout title={`Planning | ${SITE.title}`}>
   <Header activeNav="planning" />
   <main id="main-content" class="page">
-    <h2 class="page-title">Planning</h2>
+    <div class="plan-head">
+      <h2 class="page-title">Planning</h2>
+      <a
+        href="https://senne-debacker.github.io/BAP-PLANNING/"
+        target="_blank"
+        rel="noopener"
+        class="link-arrow">planning bewerken →</a
+      >
+    </div>
 
     {
       failed ? (
@@ -131,6 +139,13 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
 </Layout>
 
 <style>
+  .plan-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
   .empty {
     color: var(--muted);
   }
