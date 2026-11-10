@@ -9,11 +9,7 @@ const { activeNav } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const items = [
   { key: "posts", label: "blog", href: `${base}posts/` },
-  {
-    key: "planning",
-    label: "planning",
-    href: "https://senne-debacker.github.io/BAP-PLANNING/",
-  },
+  { key: "planning", label: "planning", href: `${base}planning/` },
   { key: "team", label: "team", href: `${base}team/` },
   { key: "about", label: "over", href: `${base}about/` },
 ];

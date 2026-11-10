@@ -1,0 +1,262 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import { SITE } from "@config";
+import { bapWeek, weekRange } from "@utils/pijlers";
+import { slugifyStr } from "@utils/slugify";
+
+type Item = {
+  id: string;
+  t: string;
+  type: string;
+  ond: string;
+  start: string;
+  end?: string;
+  status: string;
+};
+
+const SOURCE =
+  "https://raw.githubusercontent.com/senne-debacker/BAP-PLANNING/main/tasks.json";
+
+let items: Item[] = [];
+let failed = false;
+try {
+  const response = await fetch(SOURCE);
+  items = ((await response.json()) as Item[]).filter(i => i.t && i.start);
+} catch {
+  failed = true;
+}
+
+const noon = (iso: string) => new Date(`${iso}T12:00:00Z`);
+const day = (iso: string) =>
+  noon(iso).toLocaleDateString("nl-BE", { day: "numeric", month: "short" });
+const range = (item: Item) =>
+  item.end && item.end !== item.start
+    ? `${day(item.start)} – ${day(item.end)}`
+    : day(item.start);
+const status = (value: string) =>
+  /done/i.test(value) ? "done" : /not started/i.test(value) ? "todo" : "busy";
+const STATUS = { todo: "Te doen", busy: "Bezig", done: "Klaar" };
+
+const now = bapWeek(new Date());
+const weeks = new Map<number, { moments: Item[]; tasks: Item[] }>();
+for (const item of items) {
+  const first = bapWeek(noon(item.start));
+  const last = bapWeek(noon(item.end || item.start));
+  for (let week = first; week <= last; week++) {
+    if (!weeks.has(week)) weeks.set(week, { moments: [], tasks: [] });
+    const group = weeks.get(week)!;
+    (item.type === "Taak" ? group.tasks : group.moments).push(item);
+  }
+}
+const sorted = [...weeks].sort(([a], [b]) => a - b);
+sorted.forEach(([, group]) => {
+  group.moments.sort((a, b) => a.start.localeCompare(b.start));
+  group.tasks.sort((a, b) => a.start.localeCompare(b.start));
+});
+const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
+---
+
+<Layout title={`Planning | ${SITE.title}`}>
+  <Header activeNav="planning" />
+  <main id="main-content" class="page">
+    <h2 class="page-title">Planning</h2>
+
+    {
+      failed ? (
+        <p class="empty">De planning kon niet geladen worden.</p>
+      ) : (
+        <>
+          <div class="filter-row plan-filter">
+            <button class="chip" aria-pressed="true" data-value="">
+              Alles
+            </button>
+            {onderdelen.map(ond => (
+              <button
+                class="chip"
+                aria-pressed="false"
+                data-value={slugifyStr(ond)}
+              >
+                {ond}
+              </button>
+            ))}
+          </div>
+
+          {sorted.map(([week, group]) => (
+            <details class="plan-week" open={week >= now}>
+              <summary class="week-label">
+                week {week} · {weekRange(week)}
+                {week === now && <span class="now">nu</span>}
+              </summary>
+
+              {group.moments.length > 0 && (
+                <ul class="moments">
+                  {group.moments.map(item => (
+                    <li
+                      class={`moment moment--${slugifyStr(item.type)}`}
+                      data-ond={slugifyStr(item.ond)}
+                    >
+                      <span class="moment-date">{day(item.start)}</span>
+                      <span class="moment-title">{item.t}</span>
+                      <span class="moment-type">{item.type}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {group.tasks.length > 0 && (
+                <ul class="tasks">
+                  {group.tasks.map(item => (
+                    <li class="task" data-ond={slugifyStr(item.ond)}>
+                      <span
+                        class={`dot dot--${status(item.status)}`}
+                        title={STATUS[status(item.status)]}
+                      />
+                      <span class="task-title">{item.t}</span>
+                      <span class="task-meta">
+                        {item.ond} · {range(item)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </details>
+          ))}
+        </>
+      )
+    }
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .empty {
+    color: var(--muted);
+  }
+  .plan-filter {
+    margin-bottom: var(--space-m);
+  }
+  .plan-week {
+    margin-bottom: var(--space-m);
+  }
+  .plan-week summary {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+  }
+  .plan-week summary::-webkit-details-marker {
+    display: none;
+  }
+  .now {
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background-color: var(--blue);
+    color: #fff;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .moments,
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .moments {
+    margin-bottom: 0.75rem;
+  }
+  .moment {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: 0.75rem;
+    align-items: baseline;
+    padding: 0.6rem 0.75rem;
+    border-left: 3px solid var(--line);
+    border-radius: 0 8px 8px 0;
+    background-color: var(--card);
+    font-size: var(--fs-base);
+  }
+  .moment--school-deadline {
+    border-left-color: #e11d48;
+  }
+  .moment--tussendeadline {
+    border-left-color: #f59e0b;
+  }
+  .moment--overleg {
+    border-left-color: var(--blue);
+  }
+  .moment-date {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .moment-title {
+    font-weight: 600;
+  }
+  .moment-type {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .task {
+    display: grid;
+    grid-template-columns: 0.6rem 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background-color: var(--card);
+    font-size: var(--fs-base);
+  }
+  .task-meta {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background-color: var(--line);
+  }
+  .dot--busy {
+    background-color: var(--blue);
+  }
+  .dot--done {
+    background-color: #10b981;
+  }
+  @media (max-width: 40rem) {
+    .moment,
+    .task {
+      grid-template-columns: auto 1fr;
+    }
+    .moment-type,
+    .task-meta {
+      grid-column: 2;
+    }
+  }
+</style>
+
+<script>
+  const rows = document.querySelectorAll<HTMLElement>("[data-ond]");
+  const weeks = document.querySelectorAll<HTMLDetailsElement>(".plan-week");
+  const buttons = document.querySelectorAll<HTMLButtonElement>(
+    ".plan-filter button"
+  );
+  buttons.forEach(button =>
+    button.addEventListener("click", () => {
+      const value = button.dataset.value ?? "";
+      buttons.forEach(b =>
+        b.setAttribute("aria-pressed", String(b === button))
+      );
+      rows.forEach(row => {
+        row.hidden = !!value && row.dataset.ond !== value;
+      });
+      weeks.forEach(week => {
+        week.hidden = !week.querySelector("[data-ond]:not([hidden])");
+      });
+    })
+  );
+</script>

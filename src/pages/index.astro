@@ -16,7 +16,6 @@ const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
   <main id="main-content">
     <div class="hero">
       <div>
-        {home.intro && <p class="hero__eyebrow">{home.intro}</p>}
         <h1 class="hero__title">{home.titel}</h1>
         {home.vraag && <p class="hero__subtitle">{home.vraag}</p>}
       </div>

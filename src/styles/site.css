@@ -109,11 +109,6 @@ a:hover {
   padding-top: var(--space-xl);
   padding-bottom: var(--space-xl);
 }
-.hero__eyebrow {
-  font-size: var(--fs-sm);
-  color: var(--muted);
-  margin-bottom: var(--space-xs);
-}
 .hero__title {
   font-size: var(--fs-hero);
   font-weight: 800;

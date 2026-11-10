@@ -314,7 +314,6 @@ content:
     format: json
     fields:
       - { name: titel, label: Titel, type: string, required: true }
-      - { name: intro, label: "Regel boven de titel", type: string }
       - { name: vraag, label: "Onderzoeksvraag", type: text }
       - { name: video, label: "Showcase video – plak een Vimeo-link (unlisted mag)", type: string }
       - { name: email, label: "E-mail in de footer", type: string }
