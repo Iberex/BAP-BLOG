@@ -40,22 +40,37 @@ const status = (value: string) =>
 const STATUS = { todo: "Te doen", busy: "Bezig", done: "Klaar" };
 
 const now = bapWeek(new Date());
-const weeks = new Map<number, { moments: Item[]; tasks: Item[] }>();
+const weeks = new Map<number, Item[]>();
 for (const item of items) {
   const first = bapWeek(noon(item.start));
   const last = bapWeek(noon(item.end || item.start));
   for (let week = first; week <= last; week++) {
-    if (!weeks.has(week)) weeks.set(week, { moments: [], tasks: [] });
-    const group = weeks.get(week)!;
-    (item.type === "Taak" ? group.tasks : group.moments).push(item);
+    weeks.set(week, [...(weeks.get(week) ?? []), item]);
   }
 }
-const sorted = [...weeks].sort(([a], [b]) => a - b);
-sorted.forEach(([, group]) => {
-  group.moments.sort((a, b) => a.start.localeCompare(b.start));
-  group.tasks.sort((a, b) => a.start.localeCompare(b.start));
+const sorted = [...weeks]
+  .sort(([a], [b]) => a - b)
+  .map(([week, list]) => {
+    const byDate = [...list].sort((a, b) => a.start.localeCompare(b.start));
+    return {
+      week,
+      moments: byDate.filter(i => i.type !== "Taak"),
+      tasks: byDate.filter(i => i.type === "Taak"),
+    };
+  });
+
+const unique = (values: string[]) => [...new Set(values.filter(Boolean))];
+const soorten = unique(items.map(i => i.type)).sort((a, b) =>
+  a === "Taak" ? -1 : b === "Taak" ? 1 : a.localeCompare(b)
+);
+const onderdelen = unique(items.map(i => i.ond)).sort();
+const count = (key: "type" | "ond", value: string) =>
+  items.filter(i => i[key] === value).length;
+const attrs = (item: Item) => ({
+  "data-soort": slugifyStr(item.type),
+  "data-ond": slugifyStr(item.ond),
+  "data-status": status(item.status),
 });
-const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
 ---
 
 <Layout title={`Planning | ${SITE.title}`}>
@@ -76,61 +91,114 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
         <p class="empty">De planning kon niet geladen worden.</p>
       ) : (
         <>
-          <div class="filter-row plan-filter">
-            <button class="chip" aria-pressed="true" data-value="">
-              Alles
-            </button>
-            {onderdelen.map(ond => (
-              <button
-                class="chip"
-                aria-pressed="false"
-                data-value={slugifyStr(ond)}
-              >
-                {ond}
+          <div class="plan-filters">
+            <div class="filter-row" data-filter="soort">
+              <span class="filter-label">Soort</span>
+              <button class="chip" aria-pressed="true" data-value="">
+                Alles
               </button>
-            ))}
+              {soorten.map(soort => (
+                <button
+                  class="chip"
+                  aria-pressed="false"
+                  data-value={slugifyStr(soort)}
+                >
+                  {soort} <span class="chip-count">{count("type", soort)}</span>
+                </button>
+              ))}
+            </div>
+            <div class="filter-row" data-filter="ond">
+              <span class="filter-label">Onderdeel</span>
+              <button class="chip" aria-pressed="true" data-value="">
+                Alles
+              </button>
+              {onderdelen.map(ond => (
+                <button
+                  class="chip"
+                  aria-pressed="false"
+                  data-value={slugifyStr(ond)}
+                >
+                  {ond} <span class="chip-count">{count("ond", ond)}</span>
+                </button>
+              ))}
+            </div>
+            <div class="filter-row" data-filter="status">
+              <span class="filter-label">Status</span>
+              <button class="chip" aria-pressed="true" data-value="">
+                Alles
+              </button>
+              {Object.entries(STATUS).map(([key, label]) => (
+                <button class="chip" aria-pressed="false" data-value={key}>
+                  <span class={`dot dot--${key}`} />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {sorted.map(([week, group]) => (
-            <details class="plan-week" open={week >= now}>
-              <summary class="week-label">
-                week {week} · {weekRange(week)}
-                {week === now && <span class="now">nu</span>}
-              </summary>
+          <div class="plan-weeks">
+            {sorted.map(({ week, moments, tasks }) => (
+              <details
+                class:list={["plan-week", { "plan-week--now": week === now }]}
+                open={week === now}
+                data-now={week === now ? "" : undefined}
+              >
+                <summary>
+                  <span class="plan-week__title">
+                    Week {week}
+                    {week === now && <span class="now">deze week</span>}
+                  </span>
+                  <span class="plan-week__range">{weekRange(week)}</span>
+                  <span class="plan-week__count">
+                    <span class="visible-count">
+                      {moments.length + tasks.length}
+                    </span>{" "}
+                    <span class="count-word">
+                      {moments.length + tasks.length === 1 ? "item" : "items"}
+                    </span>
+                  </span>
+                  <svg viewBox="0 0 24 24" class="chevron" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </summary>
 
-              {group.moments.length > 0 && (
-                <ul class="moments">
-                  {group.moments.map(item => (
-                    <li
-                      class={`moment moment--${slugifyStr(item.type)}`}
-                      data-ond={slugifyStr(item.ond)}
-                    >
-                      <span class="moment-date">{day(item.start)}</span>
-                      <span class="moment-title">{item.t}</span>
-                      <span class="moment-type">{item.type}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {group.tasks.length > 0 && (
-                <ul class="tasks">
-                  {group.tasks.map(item => (
-                    <li class="task" data-ond={slugifyStr(item.ond)}>
-                      <span
-                        class={`dot dot--${status(item.status)}`}
-                        title={STATUS[status(item.status)]}
-                      />
-                      <span class="task-title">{item.t}</span>
-                      <span class="task-meta">
-                        {item.ond} · {range(item)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </details>
-          ))}
+                <div class="plan-week__body">
+                  {moments.length > 0 && (
+                    <ul class="moments">
+                      {moments.map(item => (
+                        <li
+                          class={`moment moment--${slugifyStr(item.type)}`}
+                          {...attrs(item)}
+                        >
+                          <span class="moment-date">{day(item.start)}</span>
+                          <span class="moment-title">{item.t}</span>
+                          <span class="moment-type">{item.type}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {tasks.length > 0 && (
+                    <ul class="tasks">
+                      {tasks.map(item => (
+                        <li class="task" {...attrs(item)}>
+                          <span
+                            class={`dot dot--${status(item.status)}`}
+                            title={STATUS[status(item.status)]}
+                          />
+                          <span class="task-title">{item.t}</span>
+                          <span class="task-ond">{item.ond}</span>
+                          <span class="task-date">{range(item)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </details>
+            ))}
+          </div>
+          <p id="plan-empty" class="empty" hidden>
+            Geen items met deze filters.
+          </p>
         </>
       )
     }
@@ -149,48 +217,112 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
   .empty {
     color: var(--muted);
   }
-  .plan-filter {
+  .plan-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-bottom: var(--space-m);
+    font-size: var(--fs-base);
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .filter-label {
+    width: 5.5rem;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .chip-count {
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+  .plan-weeks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
   .plan-week {
-    margin-bottom: var(--space-m);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background-color: var(--card);
+  }
+  .plan-week--now {
+    border-color: var(--blue);
   }
   .plan-week summary {
-    display: flex;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1rem;
     align-items: center;
+    padding: 1rem 1.25rem;
     cursor: pointer;
     list-style: none;
   }
   .plan-week summary::-webkit-details-marker {
     display: none;
   }
+  .plan-week__title {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    font-weight: 700;
+  }
+  .plan-week__range,
+  .plan-week__count {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
   .now {
-    padding: 0 0.5rem;
+    padding: 0.05rem 0.55rem;
     border-radius: 999px;
     background-color: var(--blue);
     color: #fff;
-    letter-spacing: 0;
-    text-transform: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .chevron {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .plan-week[open] .chevron {
+    transform: rotate(180deg);
+  }
+  .plan-week__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.25rem 1.25rem;
   }
   .moments,
   .tasks {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
   }
   .moments {
-    margin-bottom: 0.75rem;
+    gap: 0.4rem;
   }
   .moment {
     display: grid;
-    grid-template-columns: 4.5rem 1fr auto;
+    grid-template-columns: 4rem 1fr auto;
     gap: 0.75rem;
     align-items: baseline;
     padding: 0.6rem 0.75rem;
     border-left: 3px solid var(--line);
     border-radius: 0 8px 8px 0;
-    background-color: var(--card);
+    background-color: var(--paper);
     font-size: var(--fs-base);
   }
   .moment--school-deadline {
@@ -216,23 +348,29 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
   }
   .task {
     display: grid;
-    grid-template-columns: 0.6rem 1fr auto;
+    grid-template-columns: 0.6rem 1fr 9rem 8rem;
     gap: 0.75rem;
     align-items: center;
-    padding: 0.6rem 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background-color: var(--card);
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--line);
     font-size: var(--fs-base);
   }
-  .task-meta {
+  .task:first-child {
+    border-top: 0;
+  }
+  .task-ond,
+  .task-date {
     font-size: var(--fs-sm);
     color: var(--muted);
+  }
+  .task-date {
+    text-align: right;
     white-space: nowrap;
   }
   .dot {
     width: 0.6rem;
     height: 0.6rem;
+    flex-shrink: 0;
     border-radius: 999px;
     background-color: var(--line);
   }
@@ -243,35 +381,79 @@ const onderdelen = [...new Set(items.map(i => i.ond).filter(Boolean))].sort();
     background-color: #10b981;
   }
   @media (max-width: 40rem) {
-    .moment,
-    .task {
-      grid-template-columns: auto 1fr;
+    .plan-week summary {
+      grid-template-columns: 1fr auto;
     }
-    .moment-type,
-    .task-meta {
+    .plan-week__range {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .plan-week__count {
+      display: none;
+    }
+    .chevron {
       grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+    .moment {
+      grid-template-columns: 4rem 1fr;
+    }
+    .moment-type {
+      display: none;
+    }
+    .task {
+      grid-template-columns: 0.6rem 1fr auto;
+      row-gap: 0.1rem;
+    }
+    .task-title {
+      grid-column: 2 / span 2;
+    }
+    .task-ond {
+      grid-column: 2;
+    }
+    .task-date {
+      grid-column: 3;
     }
   }
 </style>
 
 <script>
+  const filters: Record<string, string> = { soort: "", ond: "", status: "" };
   const rows = document.querySelectorAll<HTMLElement>("[data-ond]");
   const weeks = document.querySelectorAll<HTMLDetailsElement>(".plan-week");
-  const buttons = document.querySelectorAll<HTMLButtonElement>(
-    ".plan-filter button"
-  );
-  buttons.forEach(button =>
-    button.addEventListener("click", () => {
-      const value = button.dataset.value ?? "";
-      buttons.forEach(b =>
-        b.setAttribute("aria-pressed", String(b === button))
+
+  function apply() {
+    const active = Object.values(filters).some(Boolean);
+    rows.forEach(row => {
+      row.hidden = Object.entries(filters).some(
+        ([key, value]) => value && row.dataset[key] !== value
       );
-      rows.forEach(row => {
-        row.hidden = !!value && row.dataset.ond !== value;
+    });
+    let shown = 0;
+    weeks.forEach(week => {
+      const visible = week.querySelectorAll("[data-ond]:not([hidden])").length;
+      week.hidden = visible === 0;
+      week.querySelector(".visible-count")!.textContent = String(visible);
+      week.querySelector(".count-word")!.textContent =
+        visible === 1 ? "item" : "items";
+      week.open = active ? visible > 0 : week.hasAttribute("data-now");
+      week.querySelectorAll<HTMLElement>(".moments, .tasks").forEach(list => {
+        list.hidden = !list.querySelector("[data-ond]:not([hidden])");
       });
-      weeks.forEach(week => {
-        week.hidden = !week.querySelector("[data-ond]:not([hidden])");
-      });
+      if (visible) shown++;
+    });
+    document.getElementById("plan-empty")!.hidden = shown > 0;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-filter]").forEach(row =>
+    row.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest("button");
+      if (!button) return;
+      filters[row.dataset.filter!] = button.dataset.value ?? "";
+      row
+        .querySelectorAll("button")
+        .forEach(b => b.setAttribute("aria-pressed", String(b === button)));
+      apply();
     })
   );
 </script>
