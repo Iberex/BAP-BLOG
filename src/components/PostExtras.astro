@@ -21,7 +21,9 @@ const {
   fragments,
 } = Astro.props.data;
 
-const videos = video ? allVideos : allVideos.slice(1);
+const topIsVideo = !beelden[0] && !video;
+const videos = topIsVideo ? allVideos.slice(1) : allVideos;
+const gallery = beelden.slice(1);
 
 const lines = (value?: string | null) =>
   (value ?? "")
@@ -121,11 +123,11 @@ const files = bestanden.map(({ src, naam }) => {
 }
 
 {
-  beelden.length > 0 && (
+  gallery.length > 0 && (
     <section class="block">
       <h2>Beelden</h2>
       <div class="beelden">
-        {beelden.map(beeld => (
+        {gallery.map(beeld => (
           <figure>
             <a href={beeld.src} target="_blank" rel="noopener">
               <img
@@ -202,7 +204,10 @@ const files = bestanden.map(({ src, naam }) => {
     @apply grid gap-4 sm:grid-cols-2;
   }
   .videos {
-    @apply grid gap-4;
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .videos figure:first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
   }
   .videos figure {
     @apply m-0;

@@ -8,13 +8,16 @@ samenvatting: "In één weekend leerde ik TouchDesigner door effecten te maken d
   verwacht: eens je de handdata hebt, kun je er bijna alles mee aansturen, zelfs
   de verlichting van mijn toetsenbord."
 videos:
-  - link: " https://vimeo.com/1245501015"
+  - link: https://vimeo.com/1245501015
     titel: Röntgen
   - link: https://vimeo.com/1245501581
     titel: Toetsenbord + oled screen
   - link: https://vimeo.com/1245502443
-    titel: Toestenbord Led
+    titel: Toetsenbord led
 soort: experiment
+beelden:
+  - src: /BAP-BLOG/beelden/touchdesigner-netwerk.jpg
+    bijschrift: Mijn eerste netwerk in TouchDesigner
 blokken:
   doel: >-
     Ik keek online rond en vroeg ook aan AI wat ik zou kunnen onderzoeken. Ik

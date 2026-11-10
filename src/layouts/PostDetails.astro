@@ -86,7 +86,9 @@ const layoutProps = {
     </header>
 
     {
-      vimeo ? (
+      post.data.beelden[0] ? (
+        <img src={post.data.beelden[0].src!} alt="" class="post-media" />
+      ) : vimeo ? (
         <iframe
           src={vimeo}
           title={title}
@@ -94,8 +96,6 @@ const layoutProps = {
           allow="fullscreen; picture-in-picture"
           allowfullscreen
         />
-      ) : post.data.beelden[0] ? (
-        <img src={post.data.beelden[0].src!} alt="" class="post-media" />
       ) : (
         <div class="post-media post-media--blank" />
       )
