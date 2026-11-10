@@ -7,6 +7,13 @@ samenvatting: "In één weekend leerde ik TouchDesigner door effecten te maken d
   mijn handen volgen via de webcam en MediaPipe. Het viel beter mee dan
   verwacht: eens je de handdata hebt, kun je er bijna alles mee aansturen, zelfs
   de verlichting van mijn toetsenbord."
+videos:
+  - link: " https://vimeo.com/1245501015"
+    titel: Röntgen
+  - link: https://vimeo.com/1245501581
+    titel: Toetsenbord + oled screen
+  - link: https://vimeo.com/1245502443
+    titel: Toestenbord Led
 soort: experiment
 blokken:
   doel: >-
@@ -39,7 +46,6 @@ blokken:
     Röntgen: tussen je vingers verschijnt een kader dat een lijntekening van je
     gezicht toont, alsof je door je handen kijkt.
 
-    Touw: [vul aan: wat doet het precies?]
 
     Toetsenbord: ik wilde TouchDesigner eerst aan iets niet-digitaals koppelen
     met een Arduino, maar die lag onder het stof en ik had niet alles bij de
@@ -47,8 +53,10 @@ blokken:
     Via de software van SteelSeries kun je dat rechtstreeks aansturen met JSON.
     Ik maakte twee versies:
 
+
     Licht: de kant van het toetsenbord waar je hand is, licht rood op. Een open
     hand is licht aan, een vuist is licht uit.
+
 
     Scherm: de punten van je hand verschijnen op het kleine OLED-schermpje van
     het toetsenbord.
