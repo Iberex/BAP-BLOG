@@ -4,202 +4,39 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
-import When from "@components/When.astro";
 import getSortedPosts from "@utils/getSortedPosts";
-import { PIJLERS, bapWeek } from "@utils/pijlers";
-import { items, formatRange, soortClass } from "@utils/agenda";
-import { slugifyStr } from "@utils/slugify";
+import home from "../data/home.json";
 
 const base = import.meta.env.BASE_URL;
-const posts = getSortedPosts(await getCollection("blog"));
-const featured = posts.filter(({ data }) => data.featured);
-const recent = posts.filter(({ data }) => !data.featured).slice(0, 6);
-
-const perPijler = PIJLERS.map(pijler => ({
-  ...pijler,
-  count: posts.filter(({ data }) => data.onderwerpen.includes(pijler.key))
-    .length,
-}));
+const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
 ---
 
 <Layout>
   <Header />
   <main id="main-content">
-    <section class="intro">
-      <h1>BAP-procesblog</h1>
-      <p>
-        Bachelorproef Devine 2026–2027 voor Jeugdfilmfestival Antwerpen: een
-        multiplayer audiovisuele installatie voor kinderen (6–12 jaar) op
-        XL-Medialab 2027. We houden hier ons proces bij: research, experimenten,
-        feedback en keuzes.
-      </p>
-    </section>
-
-    <section class="grid gap-4 sm:grid-cols-3">
-      <div class="panel stat">
-        <p class="panel-title">Nu</p>
-        <p class="stat-value" id="current-week">Week {bapWeek(new Date())}</p>
-        <p class="stat-note">van de bachelorproef</p>
+    <div class="hero">
+      <div>
+        {home.intro && <p class="hero__eyebrow">{home.intro}</p>}
+        <h1 class="hero__title">{home.titel}</h1>
+        {home.vraag && <p class="hero__subtitle">{home.vraag}</p>}
       </div>
-      <div class="panel stat">
-        <p class="panel-title">Posts</p>
-        <p class="stat-value">{posts.length}</p>
-        <p class="stat-note">
+    </div>
+
+    <div class="page">
+      <section class="block">
+        <div class="section-head">
+          <h2>Laatste posts</h2>
+          <a href={`${base}posts/`} class="link-arrow">alle posts →</a>
+        </div>
+        <ul class="list">
           {
-            posts[0] &&
-              `laatste op ${new Date(posts[0].data.pubDatetime).toLocaleDateString("nl-BE", { day: "numeric", month: "long" })}`
-          }
-        </p>
-      </div>
-      <div class="panel stat">
-        <p class="panel-title">Volgende deadline</p>
-        {
-          items
-            .filter(item => item.soort === "deadline")
-            .map(item => (
-              <div
-                class="deadline"
-                data-start={item.start}
-                data-end={item.einde}
-                hidden
-              >
-                <p class="flex flex-wrap items-center gap-2">
-                  <span class="stat-value">{formatRange(item)}</span>
-                  <When start={item.start} end={item.einde} />
-                </p>
-                <p class="stat-note line-clamp-1" title={item.titel}>
-                  {item.titel}
-                </p>
-              </div>
+            latest.map(({ data, slug }) => (
+              <Card href={`${base}posts/${slug}/`} frontmatter={data} />
             ))
-        }
-      </div>
-    </section>
-
-    <section class="mt-4 grid gap-4 sm:grid-cols-3">
-      <div class="panel sm:col-span-2">
-        <div class="flex items-baseline justify-between">
-          <h2 class="panel-title">
-            {featured.length > 0 ? "Uitgelicht en recent" : "Laatste posts"}
-          </h2>
-          <a href={`${base}posts/`} class="more">Alle posts →</a>
-        </div>
-        {
-          posts.length === 0 ? (
-            <p class="opacity-60">Nog geen posts.</p>
-          ) : (
-            <ul>
-              {[...featured, ...recent].map(({ data, slug }) => (
-                <Card
-                  href={`${base}posts/${slug}/`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          )
-        }
-      </div>
-
-      <div class="flex flex-col gap-4">
-        <div class="panel">
-          <h2 class="panel-title">Pijlers</h2>
-          <ul class="flex flex-col gap-1">
-            {
-              perPijler.map(({ key, label, count }) => (
-                <li>
-                  <a href={`${base}posts/?pijler=${key}`} class="pijler-link">
-                    <span class={`pill pill-${key}`}>{label}</span>
-                    <span class="tabular-nums opacity-60">{count}</span>
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-
-        <div class="panel">
-          <div class="flex items-baseline justify-between">
-            <h2 class="panel-title">Komt eraan</h2>
-            <a href={`${base}planning/`} class="more">Agenda →</a>
-          </div>
-          <ul id="deadlines" class="flex flex-col gap-3">
-            {
-              items.map(item => (
-                <li data-start={item.start} data-end={item.einde} hidden>
-                  <p class="flex items-center gap-2 text-sm">
-                    <span class={`pill ${soortClass(item.soort)}`}>
-                      {formatRange(item)}
-                    </span>
-                    <When start={item.start} end={item.einde} />
-                  </p>
-                  <p class="mt-1 line-clamp-2 text-sm opacity-70">
-                    {item.titel}
-                  </p>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-      </div>
-    </section>
+          }
+        </ul>
+      </section>
+    </div>
   </main>
-
   <Footer />
 </Layout>
-
-<style>
-  main {
-    @apply mx-auto w-full max-w-4xl px-4 pb-12;
-  }
-  main > section {
-    @apply px-0;
-  }
-  .intro {
-    @apply pb-6 pt-8;
-  }
-  .intro h1 {
-    @apply text-2xl font-semibold;
-  }
-  .intro p {
-    @apply mt-2 max-w-2xl opacity-70;
-  }
-  .stat-value {
-    @apply text-2xl font-semibold tabular-nums;
-  }
-  .stat-note {
-    @apply mt-1 text-sm opacity-60;
-  }
-  .more {
-    @apply text-sm opacity-60 hover:underline hover:underline-offset-4 hover:opacity-100;
-  }
-  .pijler-link {
-    @apply flex items-center justify-between rounded-md px-1 py-1 hover:bg-skin-card;
-  }
-</style>
-
-<script>
-  // The site is built once per change, so "upcoming" is decided in the browser.
-  const today = new Date().toISOString().slice(0, 10);
-  const upcoming = (selector: string) =>
-    [...document.querySelectorAll<HTMLElement>(selector)].filter(
-      el => el.dataset.end! >= today
-    );
-
-  upcoming("#deadlines li")
-    .slice(0, 4)
-    .forEach(li => {
-      li.hidden = false;
-    });
-
-  const deadline = upcoming(".deadline")[0];
-  if (deadline) {
-    deadline.hidden = false;
-  }
-
-  // Same for the week number, so it stays right between builds.
-  const start = Date.UTC(2026, 9, 26);
-  const week = Math.floor((Date.now() - start) / (7 * 86400000)) + 1;
-  document.getElementById("current-week")!.textContent =
-    week >= 1 ? `Week ${week}` : "Nog niet gestart";
-</script>

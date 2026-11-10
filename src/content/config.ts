@@ -22,6 +22,7 @@ const blog = defineCollection({
         pijler: z.union([z.string(), z.array(z.string())]).nullish(),
         soort: z.string().optional(),
         samenvatting: text,
+        video: text,
         // Text blocks of the post type, see src/utils/soorten.ts.
         blokken: z.record(text).nullish(),
         playtest: z

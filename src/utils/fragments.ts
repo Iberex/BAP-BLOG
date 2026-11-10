@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 import { SOORTEN } from "./soorten";
 
 // Paragraphs in the text blocks are labelled UX / Design / Development / AI automatically.
-// In CI an AI model does this (scripts/tag-paragraphs.mjs, cached in .cache/fragment-tags.json);
+// In CI an AI model does this (scripts/tag-paragraphs.mjs, cached in .cache/fragment-tags-v2.json);
 // paragraphs it has not seen (e.g. locally) fall back to the keywords below.
 // Only used at build time (content config), never in the browser.
 
 let labelled: Record<string, string[]> = {};
 try {
-  labelled = JSON.parse(readFileSync(".cache/fragment-tags.json", "utf8"));
+  labelled = JSON.parse(readFileSync(".cache/fragment-tags-v2.json", "utf8"));
 } catch {
   // No cache yet: keywords only.
 }
@@ -18,7 +18,7 @@ const KEYWORDS: Record<string, RegExp> = {
   ux: /\b(gebruiker(s)?|kinderen|kind|playtest(s)?|test(en|ers)?|getest|flow|ervaring|interactie|begrijp\w*|user(s)?|usability|reageren|reactie(s)?)\b/i,
   design:
     /\b(design|kleur(en)?|typografie|font(s)?|stijl|illustratie(s)?|moodboard|figma|logo|branding|animatie(s)?|visue(el|le)|look and feel)\b/i,
-  ai: /\b(ai|chatgpt|gpt|claude|copilot|gemini|midjourney|prompt(s)?)\b/i,
+  ai: /\b(chatgpt|gpt|claude|copilot|gemini|midjourney|prompt(s|en)?|(met|via|door|van) (de )?ai|ai (laten|gebruikt|gevraagd|gegenereerd|gemaakt))\b/i,
 };
 
 // Must match the hash in scripts/tag-paragraphs.mjs.

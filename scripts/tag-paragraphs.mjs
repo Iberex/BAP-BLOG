@@ -1,7 +1,7 @@
 // Lets an AI model decide which paragraphs of the text blocks are about UX, Design,
 // Development or AI. Uses Google Gemini when the GEMINI_API_KEY secret is set (free tier),
 // and GitHub Models with the workflow's GITHUB_TOKEN as backup.
-// Results are cached per paragraph in .cache/fragment-tags.json, so each paragraph is
+// Results are cached per paragraph in .cache/fragment-tags-v2.json, so each paragraph is
 // only sent once. Without a token (e.g. locally) this script does nothing and the site
 // falls back to keywords (src/utils/fragments.ts).
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
@@ -24,7 +24,7 @@ const PROVIDERS = [
     model: "openai/gpt-4.1-mini",
   },
 ].filter(Boolean);
-const CACHE = ".cache/fragment-tags.json";
+const CACHE = ".cache/fragment-tags-v2.json";
 const BLOG = "src/content/blog";
 const TAGS = ["ux", "design", "dev", "ai"];
 
@@ -45,7 +45,7 @@ Geef per alinea de onderwerpen waar ze echt over gaat:
 - "ux": de ervaring van de gebruikers (kinderen, klant, testers), playtests, interactie, flow, begrijpbaarheid, feedback van gebruikers.
 - "design": hoe het eruitziet of klinkt: stijl, kleur, typografie, illustratie, animatie, branding, visuele keuzes.
 - "dev": technisch bouwen: code, frameworks, hardware, sensoren, prototypes bouwen, deployen, tools.
-- "ai": het gebruik van AI-tools (ChatGPT, Claude, Copilot, ...).
+- "ai": alleen als het team zelf een AI-tool gebruikt of erover beslist (ChatGPT, Claude, Copilot, Gemini, Midjourney, ...). Niet als AI alleen ter sprake komt, bv. feedback dat iets "als AI aanvoelt" of een "AI-pitch": dat gaat over design.
 Kies alleen een onderwerp als de alinea er duidelijk over gaat. Een alinea mag meerdere of geen onderwerpen hebben. Iets bouwen is "dev"; wat gebruikers ermee doen is "ux".
 Antwoord enkel met JSON: {"1": ["dev"], "2": [], ...}.`;
 

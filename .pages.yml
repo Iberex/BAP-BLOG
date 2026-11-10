@@ -24,6 +24,7 @@ content:
         type: select
         options: { multiple: true, values: [ UX, DESIGN, DEV ] }
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
+      - &video { name: video, label: "Video – plak een Vimeo-link (unlisted mag)", type: string }
       - { name: soort, type: string, hidden: true, default: weekverslag }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -72,6 +73,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: dagboek }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -97,6 +99,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: research }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -122,6 +125,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: experiment }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -147,6 +151,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: playtest }
       - name: playtest
         label: Cijfers
@@ -179,6 +184,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: feedback }
       - name: bron
         label: "Van wie?"
@@ -208,6 +214,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: meeting }
       - name: bron
         label: "Met wie?"
@@ -236,6 +243,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: ai }
       - name: ai
         label: Tool
@@ -266,6 +274,7 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: reflectie }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -291,12 +300,31 @@ content:
       - *auteur
       - *pijler
       - *samenvatting
+      - *video
       - { name: soort, type: string, hidden: true, default: algemeen }
       - *beelden
       - *bestanden
       - *body
       - *datum
       - *draft
+  - name: home
+    label: Home
+    type: file
+    path: src/data/home.json
+    format: json
+    fields:
+      - { name: titel, label: Titel, type: string, required: true }
+      - { name: intro, label: "Regel boven de titel", type: string }
+      - { name: vraag, label: "Onderzoeksvraag", type: text }
+      - { name: video, label: "Showcase video – plak een Vimeo-link (unlisted mag)", type: string }
+      - { name: email, label: "E-mail in de footer", type: string }
+      - name: links
+        label: "Links in de footer"
+        type: object
+        list: true
+        fields:
+          - { name: naam, label: Naam, type: string, required: true }
+          - { name: url, label: Link, type: string, required: true }
   - name: planning
     label: Agenda
     type: file

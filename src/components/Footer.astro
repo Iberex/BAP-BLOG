@@ -1,51 +1,28 @@
 ---
-import Hr from "./Hr.astro";
+import home from "../data/home.json";
+import team from "../data/team.json";
 
 export interface Props {
   noMarginTop?: boolean;
 }
 
-const { noMarginTop = false } = Astro.props;
+const cms = "https://app.pagescms.org/iberex/BAP-BLOG";
 ---
 
-<footer class={`${noMarginTop ? "" : "mt-auto"}`}>
-  <Hr noPadding />
-  <div class="footer-wrapper">
-    <div class="copyright-wrapper">
-      <span>Bachelorproef Devine 2026–2027</span>
-      <span class="separator">&nbsp;|&nbsp;</span>
-      <span>Jeugdfilmfestival Antwerpen</span>
-      <span class="separator">&nbsp;|&nbsp;</span>
-      <a
-        href="https://app.pagescms.org/iberex/BAP-BLOG"
-        class="underline underline-offset-4">+ Nieuwe post</a
-      >
-      <span class="separator">&nbsp;|&nbsp;</span>
-      <a
-        href="https://app.pagescms.org/iberex/BAP-BLOG"
-        class="underline underline-offset-4">Beheer</a
-      >
-    </div>
-  </div>
+<footer class="site-footer">
+  <p>
+    <span class="site-footer__title">{home.titel}</span>
+    · {team.map(({ naam }) => naam).join(", ")}
+  </p>
+  <p class="site-footer__links">
+    {home.email && <a href={`mailto:${home.email}`}>{home.email}</a>}
+    {
+      home.links.map(({ naam, url }) => (
+        <a href={url} target="_blank" rel="noopener">
+          {naam}
+        </a>
+      ))
+    }
+    <a href={cms}>Beheer</a>
+  </p>
 </footer>
-
-<style>
-  footer {
-    @apply w-full;
-  }
-  .footer-wrapper {
-    @apply flex flex-col items-center justify-center py-8 text-center text-sm;
-  }
-  .link-button {
-    @apply my-1 p-2;
-  }
-  .link-button svg {
-    @apply scale-125;
-  }
-  .copyright-wrapper {
-    @apply flex flex-col items-center gap-1 whitespace-nowrap opacity-70 sm:flex-row sm:gap-0;
-  }
-  .separator {
-    @apply hidden sm:inline;
-  }
-</style>

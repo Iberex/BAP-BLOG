@@ -1,12 +1,11 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import Layout from "@layouts/Layout.astro";
-import Main from "@layouts/Main.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import { SITE } from "@config";
-import { PIJLERS, bapWeek, weekRange } from "@utils/pijlers";
+import { PIJLERS, bapWeek } from "@utils/pijlers";
 import { slugifyStr } from "@utils/slugify";
 import { SOORTEN } from "@utils/soorten";
 
@@ -34,11 +33,12 @@ const soorten = [
 
 <Layout title={`Posts | ${SITE.title}`}>
   <Header activeNav="posts" />
-  <Main
-    pageTitle="Posts"
-    pageDesc="Alle posts in volgorde, per week. Filter op soort post of pijler."
-  >
+  <main id="main-content" class="page">
+    <h2 class="page-title">Blog</h2>
     <div class="filters" aria-label="Filters">
+      <a href={`${import.meta.env.BASE_URL}search/`} class="search-link">
+        zoeken in alle posts →
+      </a>
       <div class="filter-row" data-filter="soort">
         <span class="filter-label">Soort</span>
         <button class="chip" aria-pressed="true" data-value="">Alles</button>
@@ -67,40 +67,42 @@ const soorten = [
       </div>
     </div>
 
-    <div class="panel">
-      {
-        [...weeks].map(([week, posts]) => (
-          <section class="week-group">
-            <h2 class="panel-title">
-              {week >= 1 ? `Week ${week}` : "Voor de start"}
-              {week >= 1 && (
-                <span class="font-normal"> · {weekRange(week)}</span>
-              )}
-            </h2>
-            <ul>
-              {posts.map(({ data, slug }) => (
-                <Card
-                  href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          </section>
-        ))
-      }
-      <p id="no-results" class="opacity-60" hidden>
-        Geen posts met deze filters.
-      </p>
-    </div>
-  </Main>
+    {
+      [...weeks].map(([week, posts]) => (
+        <section class="week-group">
+          <h3 class="week-label">
+            {week >= 1 ? `week ${week}` : "voor de start"}
+          </h3>
+          <ul class="list">
+            {posts.map(({ data, slug }) => (
+              <Card
+                href={`${import.meta.env.BASE_URL}posts/${slug}/`}
+                frontmatter={data}
+              />
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+    <script
+      id="pijler-labels"
+      type="application/json"
+      set:html={JSON.stringify(
+        Object.fromEntries(PIJLERS.map(({ key, label }) => [key, label]))
+      )}
+    />
+    <p id="no-results" hidden>Geen posts met deze filters.</p>
+  </main>
 
   <Footer />
 </Layout>
 
 <style>
   .filters {
-    @apply mb-4 flex flex-col gap-2;
+    @apply mb-12 flex flex-col gap-2 text-base;
+  }
+  .search-link {
+    @apply mb-2 self-start text-sm opacity-60 hover:underline hover:underline-offset-4 hover:opacity-100;
   }
   .filter-row {
     @apply flex flex-wrap items-center gap-2;
@@ -108,16 +110,18 @@ const soorten = [
   .filter-label {
     @apply w-14 text-sm opacity-60;
   }
-  .week-group + .week-group {
-    @apply mt-6;
-  }
 </style>
 
 <script>
   // Filters live in the URL (?pijler=ux&soort=feedback) so a filtered view can be shared.
   const params = new URLSearchParams(location.search);
+  if (params.has("soort") && params.has("pijler")) params.delete("pijler");
   const rows = document.querySelectorAll<HTMLElement>(".post-row");
   const groups = document.querySelectorAll<HTMLElement>(".week-group");
+
+  const labels: Record<string, string> = JSON.parse(
+    document.getElementById("pijler-labels")!.textContent!
+  );
 
   function apply() {
     const pijler = params.get("pijler") ?? "";
@@ -129,13 +133,26 @@ const soorten = [
         (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
         (!soort || row.dataset.soort === soort);
       row.hidden = !match;
-      // Show the paragraphs tagged with the active filter, linking straight to them.
-      row.querySelectorAll<HTMLElement>(".fragment").forEach(fragment => {
-        const tags = fragment.dataset.tags!.split(" ");
-        const show = !!pijler && tags.includes(pijler);
-        fragment.classList.toggle("hidden", !show);
-        fragment.classList.toggle("block", show);
-      });
+      const box = row.querySelector<HTMLElement>(".card__fragments");
+      if (box) {
+        let count = 0;
+        box
+          .querySelectorAll<HTMLElement>(".fragment:not(.card__summary)")
+          .forEach(fragment => {
+            const show =
+              !!pijler && fragment.dataset.tags!.split(" ").includes(pijler);
+            fragment.hidden = !show;
+            if (show) count++;
+          });
+        const summary = box.querySelector<HTMLElement>(".card__summary");
+        const useSummary = !!pijler && count === 0 && !!summary;
+        if (summary) summary.hidden = !useSummary;
+        box.hidden = !pijler || (count === 0 && !useSummary);
+        const label = labels[pijler] ?? pijler;
+        box.querySelector(".card__fragments-head")!.textContent = useSummary
+          ? `Post over ${label}`
+          : `${count} ${count === 1 ? "alinea" : "alinea's"} over ${label}`;
+      }
       if (match) shown++;
     });
     groups.forEach(group => {
@@ -159,8 +176,9 @@ const soorten = [
       const button = (event.target as HTMLElement).closest("button");
       if (!button) return;
       const value = button.dataset.value;
+      params.delete("soort");
+      params.delete("pijler");
       if (value) params.set(filterRow.dataset.filter!, value);
-      else params.delete(filterRow.dataset.filter!);
       const query = params.toString();
       history.replaceState(null, "", query ? `?${query}` : location.pathname);
       apply();
