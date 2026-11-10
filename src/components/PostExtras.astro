@@ -12,9 +12,6 @@ const {
   soort,
   blokken,
   playtest,
-  bron,
-  opdracht,
-  ai,
   actiepunten,
   beelden,
   bestanden,
@@ -33,10 +30,6 @@ const facts = [
   ["Groepen", playtest?.groepen],
   ["Leeftijd", playtest?.leeftijd],
   ["Wat getest", playtest?.wat],
-  [soort === "meeting" ? "Met" : "Van", bron],
-  ["Opdracht", opdracht],
-  ["Tool", ai?.tool],
-  ["Waarvoor", ai?.waarvoor],
 ].filter(([, value]) => value);
 
 // Each paragraph gets an id so a tag filter can link straight to it.

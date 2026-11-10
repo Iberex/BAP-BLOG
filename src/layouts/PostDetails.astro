@@ -6,7 +6,7 @@ import PostExtras from "@components/PostExtras.astro";
 import { vimeoEmbed } from "@utils/vimeo";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
-import { pijlerLabel, bapWeek } from "@utils/pijlers";
+import { pijlerLabel } from "@utils/pijlers";
 import { SOORTEN } from "@utils/soorten";
 import { LOCALE, SITE } from "@config";
 
@@ -31,7 +31,6 @@ const {
   pijlers,
   soort,
 } = post.data;
-const week = bapWeek(new Date(pubDatetime));
 const vimeo = vimeoEmbed(post.data.video);
 
 const { Content } = await post.render();
@@ -82,8 +81,7 @@ const layoutProps = {
             })
           }
         </time>
-        <span>door {author}</span>
-        {week >= 1 && <span>week {week}</span>}
+        <span>{author}</span>
       </p>
     </header>
 
