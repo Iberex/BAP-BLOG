@@ -25,6 +25,14 @@ content:
         options: { multiple: true, values: [ UX, DESIGN, DEV ] }
       - &samenvatting { name: samenvatting, label: "Samenvatting (1-2 zinnen, komt bovenaan)", type: text }
       - &video { name: video, label: "Vimeo-video (optioneel) – plak de link, leeg laten = geen video", type: string }
+      - &videos
+        name: videos
+        label: "Meer video's (optioneel) – komen onder de tekst"
+        type: object
+        list: true
+        fields:
+          - { name: link, label: Vimeo-link, type: string, required: true }
+          - { name: titel, label: "Titel (wat zie je?)", type: string }
       - { name: soort, type: string, hidden: true, default: weekverslag }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -74,6 +82,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: dagboek }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -100,6 +109,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: research }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -126,6 +136,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: experiment }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -152,6 +163,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: playtest }
       - name: playtest
         label: Cijfers
@@ -185,6 +197,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: feedback }
       - name: bron
         label: "Van wie?"
@@ -215,6 +228,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: meeting }
       - name: bron
         label: "Met wie?"
@@ -244,6 +258,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: ai }
       - name: ai
         label: Tool
@@ -275,6 +290,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: reflectie }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
@@ -301,6 +317,7 @@ content:
       - *pijler
       - *samenvatting
       - *video
+      - *videos
       - { name: soort, type: string, hidden: true, default: algemeen }
       - *beelden
       - *bestanden

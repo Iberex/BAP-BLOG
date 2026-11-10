@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { SOORTEN } from "@utils/soorten";
 import { paragraphs, fragmentId } from "@utils/fragments";
+import { vimeoEmbed } from "@utils/vimeo";
 
 export interface Props {
   data: CollectionEntry<"blog">["data"];
@@ -15,6 +16,7 @@ const {
   actiepunten,
   beelden,
   bestanden,
+  videos,
   fragments,
 } = Astro.props.data;
 
@@ -86,6 +88,33 @@ const files = bestanden.map(({ src, naam }) => {
       ))}
     </section>
   ))
+}
+
+{
+  videos.length > 0 && (
+    <section class="block">
+      <h2>Video's</h2>
+      <div class="videos">
+        {videos.map(video => {
+          const src = vimeoEmbed(video.link);
+          return (
+            src && (
+              <figure>
+                <iframe
+                  src={src}
+                  title={video.titel ?? "Video"}
+                  allow="fullscreen; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy"
+                />
+                {video.titel && <figcaption>{video.titel}</figcaption>}
+              </figure>
+            )
+          );
+        })}
+      </div>
+    </section>
+  )
 }
 
 {
@@ -168,6 +197,15 @@ const files = bestanden.map(({ src, naam }) => {
   }
   .beelden {
     @apply grid gap-4 sm:grid-cols-2;
+  }
+  .videos {
+    @apply grid gap-4;
+  }
+  .videos figure {
+    @apply m-0;
+  }
+  .videos iframe {
+    @apply aspect-video h-auto w-full rounded-lg border border-skin-line;
   }
   .beelden figure {
     @apply m-0;

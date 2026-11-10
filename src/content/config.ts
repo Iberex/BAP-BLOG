@@ -23,6 +23,10 @@ const blog = defineCollection({
         soort: z.string().optional(),
         samenvatting: text,
         video: text,
+        videos: z
+          .array(z.object({ link: text, titel: text }))
+          .nullish()
+          .transform(list => (list ?? []).filter(video => video.link)),
         // Text blocks of the post type, see src/utils/soorten.ts.
         blokken: z.record(text).nullish(),
         playtest: z
