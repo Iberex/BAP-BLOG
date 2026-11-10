@@ -60,17 +60,8 @@ const sorted = [...weeks]
   });
 
 const unique = (values: string[]) => [...new Set(values.filter(Boolean))];
-const soorten = unique(items.map(i => i.type)).sort((a, b) =>
-  a === "Taak" ? -1 : b === "Taak" ? 1 : a.localeCompare(b)
-);
 const onderdelen = unique(items.map(i => i.ond)).sort();
-const count = (key: "type" | "ond", value: string) =>
-  items.filter(i => i[key] === value).length;
-const attrs = (item: Item) => ({
-  "data-soort": slugifyStr(item.type),
-  "data-ond": slugifyStr(item.ond),
-  "data-status": status(item.status),
-});
+const attrs = (item: Item) => ({ "data-ond": slugifyStr(item.ond) });
 ---
 
 <Layout title={`Planning | ${SITE.title}`}>
@@ -91,49 +82,19 @@ const attrs = (item: Item) => ({
         <p class="empty">De planning kon niet geladen worden.</p>
       ) : (
         <>
-          <div class="plan-filters">
-            <div class="filter-row" data-filter="soort">
-              <span class="filter-label">Soort</span>
-              <button class="chip" aria-pressed="true" data-value="">
-                Alles
+          <div class="filter-row plan-filter" data-filter="ond">
+            <button class="chip" aria-pressed="true" data-value="">
+              Alles
+            </button>
+            {onderdelen.map(ond => (
+              <button
+                class="chip"
+                aria-pressed="false"
+                data-value={slugifyStr(ond)}
+              >
+                {ond}
               </button>
-              {soorten.map(soort => (
-                <button
-                  class="chip"
-                  aria-pressed="false"
-                  data-value={slugifyStr(soort)}
-                >
-                  {soort} <span class="chip-count">{count("type", soort)}</span>
-                </button>
-              ))}
-            </div>
-            <div class="filter-row" data-filter="ond">
-              <span class="filter-label">Onderdeel</span>
-              <button class="chip" aria-pressed="true" data-value="">
-                Alles
-              </button>
-              {onderdelen.map(ond => (
-                <button
-                  class="chip"
-                  aria-pressed="false"
-                  data-value={slugifyStr(ond)}
-                >
-                  {ond} <span class="chip-count">{count("ond", ond)}</span>
-                </button>
-              ))}
-            </div>
-            <div class="filter-row" data-filter="status">
-              <span class="filter-label">Status</span>
-              <button class="chip" aria-pressed="true" data-value="">
-                Alles
-              </button>
-              {Object.entries(STATUS).map(([key, label]) => (
-                <button class="chip" aria-pressed="false" data-value={key}>
-                  <span class={`dot dot--${key}`} />
-                  {label}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
 
           <div class="plan-weeks">
@@ -149,14 +110,6 @@ const attrs = (item: Item) => ({
                     {week === now && <span class="now">deze week</span>}
                   </span>
                   <span class="plan-week__range">{weekRange(week)}</span>
-                  <span class="plan-week__count">
-                    <span class="visible-count">
-                      {moments.length + tasks.length}
-                    </span>{" "}
-                    <span class="count-word">
-                      {moments.length + tasks.length === 1 ? "item" : "items"}
-                    </span>
-                  </span>
                   <svg viewBox="0 0 24 24" class="chevron" aria-hidden="true">
                     <path d="M6 9l6 6 6-6" />
                   </svg>
@@ -217,10 +170,7 @@ const attrs = (item: Item) => ({
   .empty {
     color: var(--muted);
   }
-  .plan-filters {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  .plan-filter {
     margin-bottom: var(--space-m);
     font-size: var(--fs-base);
   }
@@ -229,20 +179,6 @@ const attrs = (item: Item) => ({
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem;
-  }
-  .filter-label {
-    width: 5.5rem;
-    font-size: var(--fs-sm);
-    color: var(--muted);
-  }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .chip-count {
-    font-size: 0.75rem;
-    opacity: 0.6;
   }
   .plan-weeks {
     display: flex;
@@ -259,7 +195,7 @@ const attrs = (item: Item) => ({
   }
   .plan-week summary {
     display: grid;
-    grid-template-columns: 1fr auto auto auto;
+    grid-template-columns: 1fr auto auto;
     gap: 1rem;
     align-items: center;
     padding: 1rem 1.25rem;
@@ -275,8 +211,7 @@ const attrs = (item: Item) => ({
     align-items: center;
     font-weight: 700;
   }
-  .plan-week__range,
-  .plan-week__count {
+  .plan-week__range {
     font-size: var(--fs-sm);
     color: var(--muted);
   }
@@ -388,9 +323,6 @@ const attrs = (item: Item) => ({
       grid-column: 1;
       grid-row: 2;
     }
-    .plan-week__count {
-      display: none;
-    }
     .chevron {
       grid-column: 2;
       grid-row: 1 / span 2;
@@ -418,7 +350,7 @@ const attrs = (item: Item) => ({
 </style>
 
 <script>
-  const filters: Record<string, string> = { soort: "", ond: "", status: "" };
+  const filters: Record<string, string> = { ond: "" };
   const rows = document.querySelectorAll<HTMLElement>("[data-ond]");
   const weeks = document.querySelectorAll<HTMLDetailsElement>(".plan-week");
 
@@ -433,9 +365,6 @@ const attrs = (item: Item) => ({
     weeks.forEach(week => {
       const visible = week.querySelectorAll("[data-ond]:not([hidden])").length;
       week.hidden = visible === 0;
-      week.querySelector(".visible-count")!.textContent = String(visible);
-      week.querySelector(".count-word")!.textContent =
-        visible === 1 ? "item" : "items";
       week.open = active ? visible > 0 : week.hasAttribute("data-now");
       week.querySelectorAll<HTMLElement>(".moments, .tasks").forEach(list => {
         list.hidden = !list.querySelector("[data-ond]:not([hidden])");
