@@ -115,77 +115,84 @@ const soorten = [
 </style>
 
 <script>
-  // Filters live in the URL (?pijler=ux&soort=feedback) so a filtered view can be shared.
-  const params = new URLSearchParams(location.search);
-  if (params.has("soort") && params.has("pijler")) params.delete("pijler");
-  const rows = document.querySelectorAll<HTMLElement>(".post-row");
-  const groups = document.querySelectorAll<HTMLElement>(".week-group");
+  // /posts/ and every post share one page file, so this script is bundled on
+  // post pages too. Only run it where the post list is, or it crashes there
+  // and stops the other scripts on the page (like the Mux video player).
+  if (document.getElementById("pijler-labels")) {
+    // Filters live in the URL (?pijler=ux&soort=feedback) so a filtered view can be shared.
+    const params = new URLSearchParams(location.search);
+    if (params.has("soort") && params.has("pijler")) params.delete("pijler");
+    const rows = document.querySelectorAll<HTMLElement>(".post-row");
+    const groups = document.querySelectorAll<HTMLElement>(".week-group");
 
-  const labels: Record<string, string> = JSON.parse(
-    document.getElementById("pijler-labels")!.textContent!
-  );
+    const labels: Record<string, string> = JSON.parse(
+      document.getElementById("pijler-labels")!.textContent!
+    );
 
-  function apply() {
-    const pijler = params.get("pijler") ?? "";
-    const soort = params.get("soort") ?? "";
-    let shown = 0;
+    function apply() {
+      const pijler = params.get("pijler") ?? "";
+      const soort = params.get("soort") ?? "";
+      let shown = 0;
 
-    rows.forEach(row => {
-      const match =
-        (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
-        (!soort || row.dataset.soort === soort);
-      row.hidden = !match;
-      const box = row.querySelector<HTMLElement>(".card__fragments");
-      if (box) {
-        let count = 0;
-        box
-          .querySelectorAll<HTMLElement>(".fragment:not(.card__summary)")
-          .forEach(fragment => {
-            const match =
-              !!pijler && fragment.dataset.tags!.split(" ").includes(pijler);
-            fragment.hidden = !match || count >= 2;
-            if (match) count++;
+      rows.forEach(row => {
+        const match =
+          (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
+          (!soort || row.dataset.soort === soort);
+        row.hidden = !match;
+        const box = row.querySelector<HTMLElement>(".card__fragments");
+        if (box) {
+          let count = 0;
+          box
+            .querySelectorAll<HTMLElement>(".fragment:not(.card__summary)")
+            .forEach(fragment => {
+              const match =
+                !!pijler && fragment.dataset.tags!.split(" ").includes(pijler);
+              fragment.hidden = !match || count >= 2;
+              if (match) count++;
+            });
+          const summary = box.querySelector<HTMLElement>(".card__summary");
+          const useSummary = !!pijler && count === 0 && !!summary;
+          if (summary) summary.hidden = !useSummary;
+          box.hidden = !pijler || (count === 0 && !useSummary);
+          const label = labels[pijler] ?? pijler;
+          box.querySelector(".card__fragments-head")!.textContent = useSummary
+            ? `Post over ${label}`
+            : `${count} ${count === 1 ? "alinea" : "alinea's"} over ${label}`;
+        }
+        if (match) shown++;
+      });
+      groups.forEach(group => {
+        group.hidden = !group.querySelector(".post-row:not([hidden])");
+      });
+      document.getElementById("no-results")!.hidden = shown > 0;
+
+      document
+        .querySelectorAll<HTMLElement>(".filter-row")
+        .forEach(filterRow => {
+          const active = params.get(filterRow.dataset.filter!) ?? "";
+          filterRow.querySelectorAll("button").forEach(button => {
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.value === active)
+            );
           });
-        const summary = box.querySelector<HTMLElement>(".card__summary");
-        const useSummary = !!pijler && count === 0 && !!summary;
-        if (summary) summary.hidden = !useSummary;
-        box.hidden = !pijler || (count === 0 && !useSummary);
-        const label = labels[pijler] ?? pijler;
-        box.querySelector(".card__fragments-head")!.textContent = useSummary
-          ? `Post over ${label}`
-          : `${count} ${count === 1 ? "alinea" : "alinea's"} over ${label}`;
-      }
-      if (match) shown++;
-    });
-    groups.forEach(group => {
-      group.hidden = !group.querySelector(".post-row:not([hidden])");
-    });
-    document.getElementById("no-results")!.hidden = shown > 0;
+        });
+    }
 
     document.querySelectorAll<HTMLElement>(".filter-row").forEach(filterRow => {
-      const active = params.get(filterRow.dataset.filter!) ?? "";
-      filterRow.querySelectorAll("button").forEach(button => {
-        button.setAttribute(
-          "aria-pressed",
-          String(button.dataset.value === active)
-        );
+      filterRow.addEventListener("click", event => {
+        const button = (event.target as HTMLElement).closest("button");
+        if (!button) return;
+        const value = button.dataset.value;
+        params.delete("soort");
+        params.delete("pijler");
+        if (value) params.set(filterRow.dataset.filter!, value);
+        const query = params.toString();
+        history.replaceState(null, "", query ? `?${query}` : location.pathname);
+        apply();
       });
     });
+
+    apply();
   }
-
-  document.querySelectorAll<HTMLElement>(".filter-row").forEach(filterRow => {
-    filterRow.addEventListener("click", event => {
-      const button = (event.target as HTMLElement).closest("button");
-      if (!button) return;
-      const value = button.dataset.value;
-      params.delete("soort");
-      params.delete("pijler");
-      if (value) params.set(filterRow.dataset.filter!, value);
-      const query = params.toString();
-      history.replaceState(null, "", query ? `?${query}` : location.pathname);
-      apply();
-    });
-  });
-
-  apply();
 </script>
