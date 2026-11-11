@@ -2,7 +2,8 @@
 import type { CollectionEntry } from "astro:content";
 import { SOORTEN } from "@utils/soorten";
 import { paragraphs, fragmentId } from "@utils/fragments";
-import { vimeoEmbed } from "@utils/vimeo";
+import { vimeoEmbed, muxVideo } from "@utils/vimeo";
+import MuxVideo from "@components/MuxVideo.astro";
 
 export interface Props {
   data: CollectionEntry<"blog">["data"];
@@ -102,16 +103,22 @@ const files = bestanden.map(({ src, naam }) => {
       <div class="videos">
         {videos.map(video => {
           const src = vimeoEmbed(video.link);
+          const mux = src ? null : muxVideo(video.link);
           return (
-            src && (
+            (src || mux) && (
               <figure>
-                <iframe
-                  src={src}
-                  title={video.titel ?? "Video"}
-                  allow="fullscreen; picture-in-picture"
-                  allowfullscreen
-                  loading="lazy"
-                />
+                {mux ? (
+                  <MuxVideo {...mux} title={video.titel} class="frame" />
+                ) : (
+                  <iframe
+                    src={src}
+                    title={video.titel ?? "Video"}
+                    allow="fullscreen; picture-in-picture"
+                    allowfullscreen
+                    loading="lazy"
+                    class="frame"
+                  />
+                )}
                 {video.titel && <figcaption>{video.titel}</figcaption>}
               </figure>
             )
@@ -212,7 +219,7 @@ const files = bestanden.map(({ src, naam }) => {
   .videos figure {
     @apply m-0;
   }
-  .videos iframe {
+  .videos .frame {
     @apply aspect-video h-auto w-full rounded-lg border border-skin-line;
   }
   .beelden figure {

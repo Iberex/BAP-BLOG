@@ -1,0 +1,32 @@
+---
+// Plays a Mux video with the <mux-player> web component.
+export interface Props {
+  playbackId: string;
+  poster: string;
+  title?: string | null;
+  class?: string;
+}
+
+const { playbackId, poster, title, class: className } = Astro.props;
+---
+
+<mux-player
+  playback-id={playbackId}
+  poster={poster}
+  title={title ?? undefined}
+  metadata-video-title={title ?? undefined}
+  stream-type="on-demand"
+  class:list={["mux", className]}></mux-player>
+
+<script>
+  import "@mux/mux-player";
+</script>
+
+<style>
+  .mux {
+    display: block;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    overflow: hidden;
+  }
+</style>
