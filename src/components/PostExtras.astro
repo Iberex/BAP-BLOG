@@ -50,7 +50,33 @@ const sections = (SOORTEN[soort ?? ""]?.blokken ?? [])
       text,
     })),
   }))
-  .filter(section => section.paragraphs.length > 0);
+  .filter(section => section.paragraphs.length > 0)
+  // Lines starting with "- " or "1. " become a bullet or numbered list.
+  .map(section => ({
+    ...section,
+    groups: section.paragraphs.reduce<
+      { list?: "ul" | "ol"; items: typeof section.paragraphs }[]
+    >((groups, paragraph) => {
+      const list = /^-\s/.test(paragraph.text)
+        ? "ul"
+        : /^\d+\.\s/.test(paragraph.text)
+          ? "ol"
+          : undefined;
+      const item = list
+        ? { ...paragraph, text: paragraph.text.replace(/^(-|\d+\.)\s+/, "") }
+        : paragraph;
+      const last = groups[groups.length - 1];
+      if (list && last?.list === list) last.items.push(item);
+      else groups.push({ list, items: [item] });
+      return groups;
+    }, []),
+  }));
+
+// "Femto: 30 fps" -> "Femto" in bold, then the rest.
+const labelled = (text: string) => {
+  const match = text.match(/^([^:]{1,30}):\s+(.+)$/);
+  return match ? { label: match[1], rest: match[2] } : { rest: text };
+};
 
 const actions = lines(actiepunten);
 
@@ -84,14 +110,34 @@ const files = bestanden.map(({ src, naam }) => {
   sections.map(section => (
     <section class="block">
       <h2>{section.label}</h2>
-      {section.paragraphs.map(paragraph => (
-        <p
-          id={paragraph.id}
-          class:list={["text", { tagged: paragraph.tags.length > 0 }]}
-        >
-          {paragraph.text}
-        </p>
-      ))}
+      {section.groups.map(group => {
+        if (!group.list)
+          return group.items.map(paragraph => (
+            <p
+              id={paragraph.id}
+              class:list={["text", { tagged: paragraph.tags.length > 0 }]}
+            >
+              {paragraph.text}
+            </p>
+          ));
+        const List = group.list;
+        return (
+          <List class="tekst-lijst">
+            {group.items.map(item => {
+              const { label, rest } = labelled(item.text);
+              return (
+                <li
+                  id={item.id}
+                  class:list={["text", { tagged: item.tags.length > 0 }]}
+                >
+                  {label && <strong>{`${label}: `}</strong>}
+                  {rest}
+                </li>
+              );
+            })}
+          </List>
+        );
+      })}
     </section>
   ))
 }
@@ -200,6 +246,18 @@ const files = bestanden.map(({ src, naam }) => {
   }
   .text + .text {
     @apply mt-3;
+  }
+  .tekst-lijst {
+    @apply my-3 space-y-1 pl-5;
+  }
+  ul.tekst-lijst {
+    @apply list-disc;
+  }
+  ol.tekst-lijst {
+    @apply list-decimal;
+  }
+  .tekst-lijst .text + .text {
+    @apply mt-1;
   }
   .text.tagged {
     @apply scroll-mt-6;
