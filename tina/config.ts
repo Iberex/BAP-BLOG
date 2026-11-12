@@ -107,7 +107,8 @@ const blokken: Template[] = [
 const isLocal = process.env.TINA_PUBLIC_IS_LOCAL === "true";
 
 export default defineConfig({
-  contentApiUrlOverride: "/api/tina/gql",
+  // Online: the Netlify function. Locally Tina uses its own dev server.
+  ...(!isLocal && { contentApiUrlOverride: "/api/tina/gql" }),
   authProvider: isLocal
     ? new LocalAuthProvider()
     : new UsernamePasswordAuthJSProvider(),
@@ -141,6 +142,8 @@ export default defineConfig({
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/^-|-$/g, "")}`,
           },
+          // No folders: every post lives in src/content/blog/posts.
+          allowedActions: { createNestedFolder: false },
           defaultItem: () => ({
             pubDatetime: new Date().toISOString(),
             draft: true,
