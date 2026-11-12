@@ -9,8 +9,9 @@
   TINA_EDITOR = "1"
 
 [functions]
+  # Bundle everything into one small file: leaving next-auth outside pulled in all of Next.js
+  # and made the upload too large.
   node_bundler = "esbuild"
-  external_node_modules = ["@tinacms/datalayer", "tinacms-authjs", "next-auth"]
 
 [[redirects]]
   from = "/api/tina/*"
