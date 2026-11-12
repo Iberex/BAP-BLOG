@@ -36,3 +36,7 @@ pnpm-debug.log*
 
 # AI paragraph labels (restored by actions/cache in CI)
 .cache/
+
+# TinaCMS build output
+public/admin/
+tina/__generated__/
