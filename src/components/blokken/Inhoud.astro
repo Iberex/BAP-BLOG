@@ -6,6 +6,7 @@ import RijkeTekst from "./RijkeTekst.astro";
 import MuxVideo from "@components/MuxVideo.astro";
 import { vimeoEmbed, muxVideo } from "@utils/vimeo";
 import { mediaSrc } from "@utils/media";
+import { blokId } from "@utils/fragments";
 
 export interface Props {
   blokken?: Record<string, any>[] | null;
@@ -18,7 +19,8 @@ const soort = (blok: Record<string, any>) =>
     .replace(/^PostInhoud/, "")
     .toLowerCase();
 
-const blokken = (Astro.props.blokken ?? []).filter(Boolean);
+// Not filtered: the index must match blokId() in src/utils/fragments.ts.
+const blokken = Astro.props.blokken ?? [];
 const field = (object: unknown, property?: string) =>
   tinaField(object as never, property as never) || undefined;
 
@@ -32,7 +34,8 @@ const bestandstype = (src?: string) =>
 
 <div class="inhoud">
   {
-    blokken.map(blok => {
+    blokken.map((blok, index) => {
+      if (!blok) return null;
       switch (soort(blok)) {
         case "tussentitel":
           return (
@@ -44,13 +47,21 @@ const bestandstype = (src?: string) =>
           );
         case "tekst":
           return (
-            <div class="blok" data-tina-field={field(blok, "tekst")}>
+            <div
+              id={blokId(index)}
+              class="blok"
+              data-tina-field={field(blok, "tekst")}
+            >
               <RijkeTekst tekst={blok.tekst} />
             </div>
           );
         case "vraag":
           return (
-            <section class="blok" data-tina-field={field(blok)}>
+            <section
+              id={blokId(index)}
+              class="blok"
+              data-tina-field={field(blok)}
+            >
               {blok.vraag && <h3 class="vraag">{blok.vraag}</h3>}
               <RijkeTekst tekst={blok.tekst} />
             </section>

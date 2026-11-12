@@ -61,9 +61,9 @@ export default function Card({ href, frontmatter }: Props) {
               <span className="fragment__text">{samenvatting}</span>
             </a>
           )}
-          {fragments.map(fragment => (
+          {fragments.map((fragment, i) => (
             <a
-              key={fragment.id}
+              key={`${fragment.id}-${i}`}
               href={`${href}#${fragment.id}`}
               className="fragment"
               data-tags={fragment.tags.join(" ")}

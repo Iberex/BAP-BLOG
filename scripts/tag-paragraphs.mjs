@@ -39,6 +39,13 @@ const paragraphs = text =>
     .split(/\n+/)
     .map(line => line.trim())
     .filter(Boolean);
+// Same as plainText in src/utils/fragments.ts.
+const plainText = text =>
+  text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^\s*([*+-]|\d+\.)\s+/, "")
+    .replace(/[*_`]/g, "")
+    .trim();
 
 const PROMPT = `Je labelt alinea's uit de procesblog van een Devine-bachelorproef: drie studenten maken een interactieve, audiovisuele multiplayer-installatie voor kinderen (6-12 jaar) op een jeugdfilmfestival.
 Geef per alinea de onderwerpen waar ze echt over gaat:
@@ -108,6 +115,11 @@ for (const file of files) {
   for (const text of Object.values(frontmatter.blokken ?? {}))
     for (const paragraph of paragraphs(text))
       if (!(hash(paragraph) in cache)) todo.add(paragraph);
+  // TinaCMS posts: "Tekst" and "Vraag" blocks, as plain text (see src/utils/fragments.ts).
+  for (const blok of frontmatter.inhoud ?? [])
+    if (blok?._template === "tekst" || blok?._template === "vraag")
+      for (const paragraph of paragraphs(blok.tekst).map(plainText).filter(Boolean))
+        if (!(hash(paragraph) in cache)) todo.add(paragraph);
 }
 
 // Labels one batch with the first provider that answers.

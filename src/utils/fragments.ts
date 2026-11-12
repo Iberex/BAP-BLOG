@@ -41,15 +41,46 @@ export const tagsOf = (paragraph: string) =>
 export const fragmentId = (blok: string, index: number) =>
   `fragment-${blok}-${index}`;
 
-type Data = { soort?: string | null; blokken?: Record<string, unknown> | null };
+// TinaCMS text is Markdown: "**vet**", "[link](url)", "* punt" -> plain text.
+export const plainText = (text: string) =>
+  text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^\s*([*+-]|\d+\.)\s+/, "")
+    .replace(/[*_`]/g, "")
+    .trim();
+
+// Anchor of a TinaCMS text block, so a filter can link straight to it.
+export const blokId = (index: number) => `fragment-inhoud-${index}`;
+
+type Data = {
+  soort?: string | null;
+  blokken?: Record<string, unknown> | null;
+  inhoud?: Record<string, unknown>[] | null;
+};
 
 // Every labelled paragraph in the text blocks of a post.
-export const fragments = ({ soort, blokken }: Data) =>
-  (SOORTEN[soort ?? ""]?.blokken ?? []).flatMap(([key, label]) =>
+export const fragments = ({ soort, blokken, inhoud }: Data) => [
+  ...(SOORTEN[soort ?? ""]?.blokken ?? []).flatMap(([key, label]) =>
     paragraphs(blokken?.[key]).flatMap((text, index) => {
       const tags = tagsOf(text);
       return tags.length > 0
         ? [{ id: fragmentId(key, index), label, tags, text }]
         : [];
     })
-  );
+  ),
+  // TinaCMS posts: the "Tekst" and "Vraag" blocks.
+  ...(inhoud ?? []).flatMap((blok, index) =>
+    blok._template === "tekst" || blok._template === "vraag"
+      ? paragraphs(blok.tekst)
+          .map(plainText)
+          .filter(Boolean)
+          .flatMap(text => {
+            const tags = tagsOf(text);
+            const label = String(blok.vraag || "Tekst");
+            return tags.length > 0
+              ? [{ id: blokId(index), label, tags, text }]
+              : [];
+          })
+      : []
+  ),
+];
