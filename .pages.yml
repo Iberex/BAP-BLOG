@@ -4,6 +4,52 @@ media:
 # One collection per type of post, each with only the fields that fit it.
 # Labels of the text blocks on the site: src/utils/soorten.ts.
 content:
+  # TEST (branch cms-blokken): one collection where you build a post from blocks.
+  - name: test
+    label: "Test blokken"
+    type: group
+    items:
+      - name: posts
+        label: "Posts (test)"
+        type: collection
+        path: src/content/blog/posts
+        filename: "{year}-{month}-{day}-{title}.md"
+        view: { fields: [ title, soort, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
+        fields:
+          - { name: title, label: Titel, type: string, required: true }
+          - name: soort
+            label: Soort post
+            type: select
+            options: { values: [ weekverslag, dagboek, research, experiment, playtest, feedback, meeting, ai, reflectie, algemeen ] }
+          - name: inhoud
+            label: "Inhoud – voeg blokken toe en zet ze in de volgorde die je wil"
+            type: block
+            list: { collapsible: { summary: "{index}. {type}" } }
+            blockKey: type
+            blocks:
+              - name: tussentitel
+                label: Tussentitel
+                fields:
+                  - { name: tekst, label: Tussentitel, type: string }
+              - name: tekst
+                label: "Tekst (opmaak)"
+                fields:
+                  - { name: tekst, label: Tekst, type: rich-text }
+              - name: tekstplat
+                label: "Tekst (zonder opmaak)"
+                fields:
+                  - { name: tekst, label: Tekst, type: text }
+              - name: beeld
+                label: Beeld
+                fields:
+                  - { name: src, label: Beeld, type: image, options: { path: public/beelden } }
+                  - { name: bijschrift, label: "Bijschrift (wat zie je?)", type: string }
+          - name: pubDatetime
+            label: Datum
+            type: date
+            required: true
+            options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
+          - { name: draft, label: "Nog niet publiceren", type: boolean, default: true }
   - name: weekverslag
     label: "Weekverslagen"
     type: collection
