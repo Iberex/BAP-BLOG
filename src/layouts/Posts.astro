@@ -8,6 +8,7 @@ import { SITE } from "@config";
 import { PIJLERS, bapWeek } from "@utils/pijlers";
 import { slugifyStr } from "@utils/slugify";
 import { SOORTEN } from "@utils/soorten";
+import { inEditor, nieuwePostUrl, postHref } from "@utils/editor";
 
 export interface Props {
   currentPage: number;
@@ -37,8 +38,8 @@ const soorten = [
     <div class="page-head">
       <h2 class="page-title">Blog</h2>
       <a
-        href="https://app.pagescms.org/iberex/BAP-BLOG"
-        target="_blank"
+        href={nieuwePostUrl}
+        target={inEditor ? "_top" : "_blank"}
         rel="noopener"
         class="quiet-link">+ nieuwe post</a
       >
@@ -80,10 +81,7 @@ const soorten = [
           </h3>
           <ul class="list">
             {posts.map(({ data, slug }) => (
-              <Card
-                href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-                frontmatter={data}
-              />
+              <Card href={postHref(slug)} frontmatter={data} />
             ))}
           </ul>
         </section>

@@ -7,6 +7,7 @@ import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import Pagination from "@components/Pagination.astro";
 import { SITE } from "@config";
+import { postHref } from "@utils/editor";
 
 export interface Props {
   currentPage: number;
@@ -29,11 +30,7 @@ const { currentPage, totalPages, paginatedPosts, tag, tagName } = Astro.props;
     <ul class="panel">
       {
         paginatedPosts.map(({ data, slug }) => (
-          <Card
-            href={`${import.meta.env.BASE_URL}posts/${slug}/`}
-            frontmatter={data}
-            secHeading={false}
-          />
+          <Card href={postHref(slug)} frontmatter={data} secHeading={false} />
         ))
       }
     </ul>

@@ -6,7 +6,10 @@ export interface Props {
   noMarginTop?: boolean;
 }
 
-const cms = "https://app.pagescms.org/iberex/BAP-BLOG";
+import { beheerUrl, inEditor } from "@utils/editor";
+
+// Old posts, home and team are still edited in Pages CMS.
+const pagesCms = "https://app.pagescms.org/iberex/BAP-BLOG";
 ---
 
 <footer class="site-footer">
@@ -23,6 +26,9 @@ const cms = "https://app.pagescms.org/iberex/BAP-BLOG";
         </a>
       ))
     }
-    <a href={cms}>Beheer</a>
+    <a href={beheerUrl} target={inEditor ? "_top" : "_blank"} rel="noopener">
+      Beheer
+    </a>
+    <a href={pagesCms} target="_blank" rel="noopener">Oude posts, home, team</a>
   </p>
 </footer>

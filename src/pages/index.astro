@@ -6,6 +6,7 @@ import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import getSortedPosts from "@utils/getSortedPosts";
 import home from "../data/home.json";
+import { postHref } from "@utils/editor";
 
 const base = import.meta.env.BASE_URL;
 const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
@@ -30,7 +31,7 @@ const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
         <ul class="list">
           {
             latest.map(({ data, slug }) => (
-              <Card href={`${base}posts/${slug}/`} frontmatter={data} />
+              <Card href={postHref(slug)} frontmatter={data} />
             ))
           }
         </ul>

@@ -321,6 +321,12 @@ a:hover {
   margin: 0 auto;
   padding: var(--space-m) var(--space-s) 0;
 }
+.post-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .post-back {
   font-size: var(--fs-sm);
   color: var(--muted);

@@ -3,6 +3,10 @@
 [build]
   command = "npm run build:editor"
   publish = "dist"
+  # The free plan allows about 20 deploys a month, and the editor reads posts live
+  # from its database. So skip the build when a commit only changes content
+  # (every save in TinaCMS or Pages CMS is a commit). Exit code 0 = skip.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)src/content' ':(exclude)src/data' ':(exclude)public/beelden' ':(exclude)public/bestanden' ':(exclude)content'"
 
 [build.environment]
   NODE_VERSION = "22"
