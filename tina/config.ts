@@ -1,4 +1,8 @@
-import { defineConfig, type Template } from "tinacms";
+import { defineConfig, LocalAuthProvider, type Template } from "tinacms";
+import {
+  TinaUserCollection,
+  UsernamePasswordAuthJSProvider,
+} from "tinacms-authjs/dist/tinacms";
 import { SOORTEN } from "../src/utils/soorten";
 
 // TinaCMS: visual editor for the new block-based posts (src/content/blog/posts).
@@ -97,19 +101,29 @@ const blokken: Template[] = [
   },
 ];
 
+// Locally (npm run cms) no login and uploads go to public/beelden.
+// Online (Netlify) the team logs in with username + password, and uploads
+// go to Cloudinary (self-hosted TinaCMS cannot upload into the repo).
+const isLocal = process.env.TINA_PUBLIC_IS_LOCAL === "true";
+
 export default defineConfig({
-  branch: "main",
-  clientId: null,
-  token: null,
+  contentApiUrlOverride: "/api/tina/gql",
+  authProvider: isLocal
+    ? new LocalAuthProvider()
+    : new UsernamePasswordAuthJSProvider(),
   build: {
     outputFolder: "admin",
     publicFolder: "public",
   },
-  media: {
-    tina: { mediaRoot: "beelden", publicFolder: "public" },
-  },
+  media: isLocal
+    ? { tina: { mediaRoot: "beelden", publicFolder: "public" } }
+    : {
+        loadCustomStore: async () =>
+          (await import("next-tinacms-cloudinary")).CloudinaryMediaStore,
+      },
   schema: {
     collections: [
+      TinaUserCollection,
       {
         name: "post",
         label: "Posts",

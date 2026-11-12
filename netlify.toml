@@ -1,0 +1,25 @@
+# Netlify hosts only the TinaCMS editor (the public blog stays on GitHub Pages).
+# The team logs in at /admin/. Secrets are set in the Netlify dashboard, see README.
+[build]
+  command = "npm run build:editor"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  TINA_EDITOR = "1"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@tinacms/datalayer", "tinacms-authjs", "next-auth"]
+
+[[redirects]]
+  from = "/api/tina/*"
+  to = "/.netlify/functions/tina"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/cloudinary/*"
+  to = "/.netlify/functions/tina"
+  status = 200
+  force = true

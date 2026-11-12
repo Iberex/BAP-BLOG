@@ -6,11 +6,12 @@ import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
 import sitemap from "@astrojs/sitemap";
 import node from "@astrojs/node";
+import netlify from "@astrojs/netlify";
 import tina from "@tinacms/astro/integration";
 import { tinaAdminDevRedirect } from "@tinacms/astro/vite";
 import { SITE } from "./src/config";
 
-// TINA_EDITOR=1 builds the TinaCMS editor version of the site (npm run cms, Vercel):
+// TINA_EDITOR=1 builds the TinaCMS editor version of the site (npm run cms, Netlify):
 // served from "/" with a server for live editing. Without it: the public static
 // site for GitHub Pages under /BAP-BLOG/, exactly as before.
 const editor = process.env.TINA_EDITOR === "1";
@@ -38,7 +39,10 @@ const tinaEditorRoutes: AstroIntegration = {
 export default defineConfig({
   site: SITE.website,
   base: editor ? "/" : "/BAP-BLOG/",
-  ...(editor && { adapter: node({ mode: "standalone" }) }),
+  // Editor: Netlify online (Netlify sets NETLIFY=true while building), Node locally.
+  ...(editor && {
+    adapter: process.env.NETLIFY ? netlify() : node({ mode: "standalone" }),
+  }),
   integrations: [
     tailwind({
       applyBaseStyles: false,

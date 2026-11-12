@@ -40,3 +40,8 @@ pnpm-debug.log*
 # TinaCMS build output
 public/admin/
 tina/__generated__/
+
+# TinaCMS logins: made during the Netlify build, never committed
+content/users/
+# Netlify
+.netlify/
