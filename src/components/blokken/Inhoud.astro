@@ -1,0 +1,227 @@
+---
+// The blocks of a TinaCMS post, in the order the writer chose. Every block
+// type has one fixed look, so every post feels like the same blog.
+import { tinaField } from "@tinacms/astro/tina-field";
+import RijkeTekst from "./RijkeTekst.astro";
+import MuxVideo from "@components/MuxVideo.astro";
+import { vimeoEmbed, muxVideo } from "@utils/vimeo";
+import { mediaSrc } from "@utils/media";
+
+export interface Props {
+  blokken?: Record<string, any>[] | null;
+}
+
+// Saved files name the block "_template"; Tina's editor data "__typename"
+// (e.g. "PostInhoudTekst").
+const soort = (blok: Record<string, any>) =>
+  String(blok._template ?? blok.__typename ?? "")
+    .replace(/^PostInhoud/, "")
+    .toLowerCase();
+
+const blokken = (Astro.props.blokken ?? []).filter(Boolean);
+const field = (object: unknown, property?: string) =>
+  tinaField(object as never, property as never) || undefined;
+
+// "/beelden/plan.pdf" -> "PDF"
+const bestandstype = (src?: string) =>
+  decodeURIComponent(src ?? "")
+    .split(".")
+    .pop()
+    ?.toUpperCase();
+---
+
+<div class="inhoud">
+  {
+    blokken.map(blok => {
+      switch (soort(blok)) {
+        case "tussentitel":
+          return (
+            blok.titel && (
+              <h2 class="tussentitel" data-tina-field={field(blok, "titel")}>
+                {blok.titel}
+              </h2>
+            )
+          );
+        case "tekst":
+          return (
+            <div class="blok" data-tina-field={field(blok, "tekst")}>
+              <RijkeTekst tekst={blok.tekst} />
+            </div>
+          );
+        case "vraag":
+          return (
+            <section class="blok" data-tina-field={field(blok)}>
+              {blok.vraag && <h3 class="vraag">{blok.vraag}</h3>}
+              <RijkeTekst tekst={blok.tekst} />
+            </section>
+          );
+        case "beeld":
+          return (
+            blok.src && (
+              <figure class="blok beeld" data-tina-field={field(blok)}>
+                <img
+                  src={mediaSrc(blok.src)}
+                  alt={blok.bijschrift ?? ""}
+                  loading="lazy"
+                />
+                {blok.bijschrift && <figcaption>{blok.bijschrift}</figcaption>}
+              </figure>
+            )
+          );
+        case "galerij":
+          return (
+            <div class="blok galerij" data-tina-field={field(blok)}>
+              {(blok.beelden ?? [])
+                .filter((b: any) => b?.src)
+                .map((b: any) => (
+                  <figure>
+                    <a href={mediaSrc(b.src)} target="_blank" rel="noopener">
+                      <img
+                        src={mediaSrc(b.src)}
+                        alt={b.bijschrift ?? ""}
+                        loading="lazy"
+                      />
+                    </a>
+                    {b.bijschrift && <figcaption>{b.bijschrift}</figcaption>}
+                  </figure>
+                ))}
+            </div>
+          );
+        case "video": {
+          const vimeo = vimeoEmbed(blok.link);
+          const mux = vimeo ? null : muxVideo(blok.link);
+          return (
+            (vimeo || mux) && (
+              <figure class="blok video" data-tina-field={field(blok)}>
+                {mux ? (
+                  <MuxVideo {...mux} title={blok.titel} class="frame" />
+                ) : (
+                  <iframe
+                    src={vimeo}
+                    title={blok.titel ?? "Video"}
+                    allow="fullscreen; picture-in-picture"
+                    allowfullscreen
+                    loading="lazy"
+                    class="frame"
+                  />
+                )}
+                {blok.titel && <figcaption>{blok.titel}</figcaption>}
+              </figure>
+            )
+          );
+        }
+        case "bestand":
+          return (
+            blok.src && (
+              <a
+                class="blok bestand"
+                href={mediaSrc(blok.src)}
+                target="_blank"
+                rel="noopener"
+                data-tina-field={field(blok)}
+              >
+                <span class="bestandstype">{bestandstype(blok.src)}</span>
+                {blok.naam || decodeURIComponent(blok.src.split("/").pop())}
+              </a>
+            )
+          );
+        case "citaat":
+          return (
+            blok.citaat && (
+              <blockquote class="blok citaat" data-tina-field={field(blok)}>
+                <p>{blok.citaat}</p>
+                {blok.wie && <footer>— {blok.wie}</footer>}
+              </blockquote>
+            )
+          );
+        case "cijfers": {
+          const feiten = [
+            ["Testers", blok.testers],
+            ["Groepen", blok.groepen],
+            ["Leeftijd", blok.leeftijd],
+            ["Wat getest", blok.wat],
+          ].filter(([, waarde]) => waarde);
+          return (
+            feiten.length > 0 && (
+              <dl class="blok cijfers" data-tina-field={field(blok)}>
+                {feiten.map(([label, waarde]) => (
+                  <div>
+                    <dt>{label}</dt>
+                    <dd>{waarde}</dd>
+                  </div>
+                ))}
+              </dl>
+            )
+          );
+        }
+        case "actiepunten":
+          return (
+            (blok.punten ?? []).length > 0 && (
+              <section class="blok" data-tina-field={field(blok)}>
+                <h3 class="vraag">Actiepunten</h3>
+                <ul class="punten">
+                  {blok.punten.map((punt: string) => (
+                    <li>{punt}</li>
+                  ))}
+                </ul>
+              </section>
+            )
+          );
+        default:
+          return null;
+      }
+    })
+  }
+</div>
+
+<style>
+  .blok {
+    @apply mb-6 block;
+  }
+  .tussentitel {
+    @apply mb-3 mt-10 text-2xl font-semibold;
+  }
+  .vraag {
+    @apply mb-2 text-xl font-semibold;
+  }
+  figure {
+    @apply m-0;
+  }
+  img,
+  .frame {
+    @apply w-full rounded-lg border border-skin-line;
+  }
+  .frame {
+    @apply aspect-video h-auto;
+  }
+  .galerij {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .galerij img {
+    @apply aspect-[4/3] object-cover;
+  }
+  figcaption {
+    @apply mt-1 text-sm opacity-70;
+  }
+  .bestand {
+    @apply flex items-center gap-3 rounded-lg bg-skin-card px-3 py-2 hover:underline;
+  }
+  .bestandstype {
+    @apply rounded border border-skin-line px-1.5 text-xs font-medium opacity-70;
+  }
+  .citaat {
+    @apply border-l-4 border-skin-accent pl-4 text-lg italic;
+  }
+  .citaat footer {
+    @apply mt-1 text-sm not-italic opacity-70;
+  }
+  .cijfers {
+    @apply mx-0 flex flex-wrap gap-x-8 gap-y-2 rounded-lg bg-skin-card px-4 py-3;
+  }
+  dt {
+    @apply text-sm opacity-70;
+  }
+  .punten {
+    @apply ml-5 list-disc space-y-1;
+  }
+</style>

@@ -1,6 +1,7 @@
 import { SITE } from "@config";
 import { defineCollection, z } from "astro:content";
 import { fragments } from "../utils/fragments";
+import { mediaSrc } from "../utils/media";
 
 // Pages CMS stores empty fields as "" or null, so every extra field is optional.
 const text = z.string().nullish();
@@ -41,6 +42,10 @@ const blog = defineCollection({
           .array(z.object({ src: text, bijschrift: text }))
           .nullish()
           .transform(list => (list ?? []).filter(beeld => beeld.src)),
+        // Blocks of a TinaCMS post, in order (see tina/config.ts).
+        inhoud: z
+          .array(z.object({ _template: z.string() }).passthrough())
+          .nullish(),
         // Files (pdf, slides, ...) uploaded in the CMS, listed as downloads.
         bestanden: z
           .array(z.object({ src: text, naam: text }))
@@ -71,8 +76,22 @@ const blog = defineCollection({
             ...(data.soort === "ai" ? ["ai"] : []),
           ]),
         ];
+        // A TinaCMS post has no "beelden" list: the overview card uses its first picture.
+        const eersteBeeld = (data.inhoud ?? [])
+          .flatMap(blok =>
+            blok._template === "beeld"
+              ? [blok]
+              : blok._template === "galerij"
+                ? ((blok.beelden as { src?: string }[]) ?? [])
+                : []
+          )
+          .find(beeld => typeof beeld.src === "string" && beeld.src);
         return {
           ...data,
+          beelden:
+            data.beelden.length || !eersteBeeld
+              ? data.beelden
+              : [{ src: mediaSrc(String(eersteBeeld.src)), bijschrift: null }],
           pijlers,
           fragments: found,
           onderwerpen,

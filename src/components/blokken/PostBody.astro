@@ -1,0 +1,63 @@
+---
+// Title, meta, summary and blocks of a TinaCMS post. Used on the site
+// (PostDetails) and in the editor, where Tina re-renders it while you type.
+import { tinaField } from "@tinacms/astro/tina-field";
+import Inhoud from "./Inhoud.astro";
+import { slugifyStr } from "@utils/slugify";
+import { SOORTEN } from "@utils/soorten";
+import { LOCALE } from "@config";
+
+export interface Props {
+  data?: Record<string, any> | null;
+}
+
+const data = Astro.props.data ?? {};
+const base = import.meta.env.BASE_URL;
+const field = (property: string) =>
+  tinaField(data as never, property as never) || undefined;
+const datum = data.pubDatetime ? new Date(data.pubDatetime) : null;
+---
+
+<header class="post-head">
+  <h1 class="post-title" data-tina-field={field("title")}>{data.title}</h1>
+  <p class="post-meta">
+    {
+      data.soort && (
+        <a
+          href={`${base}posts/?soort=${slugifyStr(data.soort)}`}
+          class="post-soort"
+          data-tina-field={field("soort")}
+        >
+          {SOORTEN[data.soort]?.label ?? data.soort}
+        </a>
+      )
+    }
+    {
+      datum && (
+        <time datetime={datum.toISOString()}>
+          {datum.toLocaleDateString(LOCALE.langTag, {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </time>
+      )
+    }
+    {
+      data.author && (
+        <span data-tina-field={field("author")}>{data.author}</span>
+      )
+    }
+  </p>
+</header>
+
+<div class="post-content">
+  {
+    data.samenvatting && (
+      <p class="summary" data-tina-field={field("samenvatting")}>
+        {data.samenvatting}
+      </p>
+    )
+  }
+  <Inhoud blokken={data.inhoud} />
+</div>

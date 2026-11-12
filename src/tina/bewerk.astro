@@ -1,0 +1,32 @@
+---
+// Editor only (/bewerk/[file]): a post as it will look on the site, read
+// live from TinaCMS, so new and unsaved posts can be edited on the page.
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import TinaIsland from "@tinacms/astro/TinaIsland.astro";
+import PostBody from "@components/blokken/PostBody.astro";
+import { getPost } from "./data";
+import { islands } from "./islands";
+import { SITE } from "@config";
+
+export const prerender = false;
+
+const file = String(Astro.params.file ?? "");
+const result = await getPost(file).catch(() => null);
+const post = result?.data?.post;
+if (!post) return new Response("Post niet gevonden", { status: 404 });
+---
+
+<Layout title={`${post.title} | ${SITE.title}`}>
+  <Header />
+  <main id="main-content" class="post">
+    <TinaIsland
+      name="post"
+      wrapper={islands.post.wrapper}
+      params={{ file }}
+      primary
+    >
+      <PostBody data={post} />
+    </TinaIsland>
+  </main>
+</Layout>

@@ -1,0 +1,48 @@
+---
+// Text with formatting from a Tina rich-text field. On the site it is Markdown
+// (as saved in the .md file); inside the editor Tina sends its own tree.
+import { createMarkdownProcessor } from "@astrojs/markdown-remark";
+import TinaMarkdown from "@tinacms/astro/TinaMarkdown.astro";
+
+export interface Props {
+  tekst?: unknown;
+}
+
+const { tekst } = Astro.props;
+const html =
+  typeof tekst === "string"
+    ? (await (await createMarkdownProcessor()).render(tekst)).code
+    : null;
+---
+
+<div class="rijke-tekst">
+  {
+    html !== null ? (
+      <Fragment set:html={html} />
+    ) : (
+      tekst && <TinaMarkdown content={tekst as never} />
+    )
+  }
+</div>
+
+<style>
+  .rijke-tekst :global(p + p) {
+    @apply mt-3;
+  }
+  .rijke-tekst :global(ul),
+  .rijke-tekst :global(ol) {
+    @apply my-3 space-y-1 pl-5;
+  }
+  .rijke-tekst :global(ul) {
+    @apply list-disc;
+  }
+  .rijke-tekst :global(ol) {
+    @apply list-decimal;
+  }
+  .rijke-tekst :global(a) {
+    @apply underline decoration-dashed underline-offset-4;
+  }
+  .rijke-tekst :global(strong) {
+    @apply font-semibold;
+  }
+</style>
