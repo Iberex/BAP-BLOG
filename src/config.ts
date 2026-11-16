@@ -27,6 +27,6 @@ export const LOGO_IMAGE = {
 // public: visitors can only read, and every change needs the team password (see supabase/uren.sql).
 // Find them in Supabase under Project Settings -> API.
 export const SUPABASE = {
-  url: "",
-  key: "",
+  url: "https://gbzabbenzkzbodcmcawv.supabase.co",
+  key: "sb_publishable_x-9Ea9FUA4n507SbS1kD6g_UiPRI7dO",
 };
