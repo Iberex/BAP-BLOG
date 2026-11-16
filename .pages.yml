@@ -4,8 +4,7 @@ media:
 # One collection per type of post, each with only the fields that fit it.
 # Labels of the text blocks on the site: src/utils/soorten.ts.
 content:
-  # Posts made in TinaCMS (https://bap-blog-editor.netlify.app/admin/). Same file format
-  # as Tina ("_template" per block), so both editors can open the same posts.
+  # Posts built from blocks, in the order you choose ("_template" per block).
   # Text is Markdown: **vet**, [link](https://...), "* " for a list.
   - name: tina-posts
     label: "Posts (blokken)"
