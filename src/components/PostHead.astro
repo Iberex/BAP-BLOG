@@ -1,0 +1,76 @@
+---
+// Top of a post: title with the pillars beside it, then who wrote it and when.
+import { slugifyStr } from "@utils/slugify";
+import { pijlerLabel } from "@utils/pijlers";
+import { SOORTEN } from "@utils/soorten";
+import { LOCALE } from "@config";
+
+export interface Props {
+  title?: string;
+  author?: string;
+  soort?: string;
+  date?: Date | string;
+  pijlers?: string[];
+}
+
+const { title, author, soort, date, pijlers = [] } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const datum = date ? new Date(date) : null;
+// "Ibe" -> "I", "Team BAP" -> "TB"
+const initials = (author ?? "")
+  .split(/\s+/)
+  .map(word => word[0])
+  .join("")
+  .slice(0, 2)
+  .toUpperCase();
+---
+
+<header class="post-head">
+  <div class="post-head__top">
+    <h1 class="post-title">{title}</h1>
+    {
+      pijlers.length > 0 && (
+        <p class="post-pijlers">
+          {pijlers.map(p => (
+            <a
+              href={`${base}posts/?pijler=${slugifyStr(p)}`}
+              class={`pill pill-${slugifyStr(p)}`}
+            >
+              {pijlerLabel(p)}
+            </a>
+          ))}
+        </p>
+      )
+    }
+  </div>
+  <p class="post-meta">
+    {
+      author && (
+        <span class="post-author">
+          <span class="post-avatar" aria-hidden="true">
+            {initials}
+          </span>
+          {author}
+        </span>
+      )
+    }
+    {
+      datum && (
+        <time datetime={datum.toISOString()}>
+          {datum.toLocaleDateString(LOCALE.langTag, {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </time>
+      )
+    }
+    {
+      soort && (
+        <a href={`${base}posts/?soort=${slugifyStr(soort)}`} class="post-soort">
+          {SOORTEN[soort]?.label ?? soort}
+        </a>
+      )
+    }
+  </p>
+</header>

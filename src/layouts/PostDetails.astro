@@ -4,13 +4,10 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import PostExtras from "@components/PostExtras.astro";
 import PostBody from "@components/blokken/PostBody.astro";
-import { vimeoEmbed, muxVideo } from "@utils/vimeo";
-import MuxVideo from "@components/MuxVideo.astro";
+import PostHead from "@components/PostHead.astro";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
-import { pijlerLabel } from "@utils/pijlers";
-import { SOORTEN } from "@utils/soorten";
-import { LOCALE, SITE } from "@config";
+import { SITE } from "@config";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -33,10 +30,6 @@ const {
   pijlers,
   soort,
 } = post.data;
-const vimeo = vimeoEmbed(post.data.video ?? post.data.videos[0]?.link);
-const mux = vimeo
-  ? null
-  : muxVideo(post.data.video ?? post.data.videos[0]?.link);
 
 const { Content } = await post.render();
 // Posts from "Posts (blokken)" in Pages CMS are built from blocks (src/components/blokken/).
@@ -65,52 +58,20 @@ const layoutProps = {
 
   <main id="main-content" class="post">
     <p class="post-top">
-      <a href={`${base}posts/`} class="post-back">alle posts</a>
+      <a href={`${base}posts/`} class="post-back">Alle posts</a>
     </p>
 
     {
       blokPost ? (
         <PostBody data={post.data} />
       ) : (
-        <>
-          <header class="post-head">
-            <h1 class="post-title">{title}</h1>
-            <p class="post-meta">
-              {soort && (
-                <a
-                  href={`${base}posts/?soort=${slugifyStr(soort)}`}
-                  class="post-soort"
-                >
-                  {SOORTEN[soort]?.label ?? soort}
-                </a>
-              )}
-              <time datetime={new Date(pubDatetime).toISOString()}>
-                {new Date(pubDatetime).toLocaleDateString(LOCALE.langTag, {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </time>
-              <span>{author}</span>
-            </p>
-          </header>
-
-          {post.data.beelden[0] ? (
-            <img src={post.data.beelden[0].src!} alt="" class="post-media" />
-          ) : vimeo ? (
-            <iframe
-              src={vimeo}
-              title={title}
-              class="post-media"
-              allow="fullscreen; picture-in-picture"
-              allowfullscreen
-            />
-          ) : mux ? (
-            <MuxVideo {...mux} title={title} class="post-media" />
-          ) : (
-            <div class="post-media post-media--blank" />
-          )}
-        </>
+        <PostHead
+          title={title}
+          author={author}
+          soort={soort}
+          date={pubDatetime}
+          pijlers={pijlers}
+        />
       )
     }
 
@@ -121,20 +82,6 @@ const layoutProps = {
           <article id="article" role="article" class="prose max-w-none">
             <Content />
           </article>
-        )
-      }
-      {
-        pijlers.length > 0 && (
-          <p class="post-pijlers">
-            {pijlers.map(p => (
-              <a
-                href={`${base}posts/?pijler=${slugifyStr(p)}`}
-                class={`pill pill-${slugifyStr(p)}`}
-              >
-                {pijlerLabel(p)}
-              </a>
-            ))}
-          </p>
         )
       }
     </div>

@@ -22,9 +22,14 @@ const {
   fragments,
 } = Astro.props.data;
 
-const topIsVideo = !beelden[0] && !video;
-const videos = topIsVideo ? allVideos.slice(1) : allVideos;
-const gallery = beelden.slice(1);
+// All videos and pictures go below the text (older posts have one "video" field).
+const videos = [
+  ...(video && !allVideos.some(v => v.link === video)
+    ? [{ link: video, titel: null }]
+    : []),
+  ...allVideos,
+];
+const gallery = beelden;
 
 const lines = (value?: string | null) =>
   (value ?? "")
