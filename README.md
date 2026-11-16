@@ -20,19 +20,28 @@ Wat deed ik vandaag? · Wat heb ik geleerd? · Problemen en hoe opgelost · AI-g
 
 ## Uren
 
-Op de pagina **uren** start en stopt iedereen zijn eigen timer. Iedereen ziet live wie aan het werk is, en de uren per dag en per persoon tellen vanzelf op. Timer vergeten? Voeg je uren achteraf toe op dezelfde pagina.
+Iedereen houdt zijn uren bij in zijn **eigen Toggl Track**, in het project **BAP**. Start en stop je timer gewoon in Toggl (app, website of extensie). De pagina **uren** op de blog toont live wie aan het werk is, met de uren per dag en per persoon.
 
-Ontgrendelen gebeurt met één teamwachtwoord. Zonder wachtwoord kan je alleen kijken.
+Hoe het werkt: Toggl stuurt elke wijziging via een webhook naar de functie `toggl` in Supabase (`supabase/functions/toggl/index.ts`). Die controleert de handtekening en zet de uren in de tabellen `timers` en `sessies`. Alleen tijd in het project BAP telt mee.
 
-### Eenmalig instellen (Supabase)
+### Een teamlid koppelen (eenmalig, per persoon)
 
-1. Maak een gratis account en een nieuw project op [supabase.com](https://supabase.com).
-2. Open **SQL Editor → New query**, plak de inhoud van `supabase/uren.sql` en klik **Run**.
-3. Kies een teamwachtwoord. Haal in de laatste regel van het script de `--` weg, vervang `KIES-EEN-WACHTWOORD` en voer alleen die regel uit.
-4. Ga naar **Project Settings → API** en kopieer de **Project URL** en de **publishable key** (of `anon` key) naar `SUPABASE` in `src/config.ts`.
-5. Push naar `main`. Na de build werkt de pagina.
+1. Maak in je Toggl een project **BAP** aan en noteer het project-id (staat in de link van het project).
+2. Kies een lange geheime sleutel en zet die in Supabase (SQL Editor):
+   ```sql
+   insert into toggl_bronnen (wie, geheim, project_id) values ('Tjorven', 'GEHEIME-SLEUTEL', 123456789)
+     on conflict (wie) do update set geheim = excluded.geheim, project_id = excluded.project_id;
+   ```
+3. Maak in Toggl een webhook aan (gratis: 1 webhook, 3 events) met
+   - URL: `https://gbzabbenzkzbodcmcawv.supabase.co/functions/v1/toggl?wie=Tjorven`
+   - events: `time_entry` created, updated en deleted
+   - secret: dezelfde geheime sleutel als in stap 2.
 
-Wachtwoord veranderen: voer stap 3 opnieuw uit.
+   De functie valideert de webhook automatisch.
+
+### Database opnieuw opzetten
+
+`supabase/uren.sql` bevat de tabellen. De functie zet je online via **Edge Functions → Deploy a new function** (naam `toggl`, plak `supabase/functions/toggl/index.ts`) en zet daarna **Verify JWT** uit.
 
 ## Lokaal (optioneel)
 

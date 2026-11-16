@@ -13,38 +13,18 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
   <main id="main-content" class="page">
     <div class="page-head">
       <h2 class="page-title">Uren</h2>
-      {
-        ready && (
-          <form class="login" data-login>
-            <input
-              type="password"
-              name="pw"
-              placeholder="Teamwachtwoord"
-              aria-label="Teamwachtwoord"
-              autocomplete="current-password"
-              required
-            />
-            <button type="submit" class="quiet-link">
-              Ontgrendel
-            </button>
-          </form>
-        )
-      }
-      {
-        ready && (
-          <p class="unlocked" data-unlocked hidden>
-            Ontgrendeld
-            <button type="button" class="quiet-link" data-logout>
-              Vergrendel
-            </button>
-          </p>
-        )
-      }
+      <a
+        href="https://track.toggl.com/timer"
+        target="_blank"
+        rel="noopener"
+        class="quiet-link">Open Toggl</a
+      >
     </div>
 
     <p class="intro">
-      Druk op start als je begint te werken en op stop als je klaar bent.
-      Iedereen ziet live wie aan het werk is. De uren per dag tellen vanzelf op.
+      Iedereen houdt zijn uren bij in zijn eigen Toggl, in het project
+      <strong>BAP</strong>. Start je timer daar: hier zie je live wie aan het
+      werk is, en de uren per dag tellen vanzelf op.
     </p>
 
     {
@@ -60,7 +40,7 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
             <h3 class="block-title">Nu</h3>
             <div class="people">
               {team.map(({ naam }) => (
-                <form class="person" data-person={naam}>
+                <div class="person" data-person={naam}>
                   <div class="person__top">
                     <span class="light" aria-hidden="true" />
                     <strong>{naam}</strong>
@@ -72,23 +52,9 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
                     0:00:00
                   </p>
                   <p class="today" data-today />
-                  <input
-                    name="wat"
-                    type="text"
-                    maxlength="200"
-                    placeholder="Waaraan werk je?"
-                    aria-label={`Waaraan werkt ${naam}?`}
-                    data-edit
-                  />
-                  <button type="submit" class="toggle" data-toggle data-edit>
-                    Start
-                  </button>
-                </form>
+                </div>
               ))}
             </div>
-            <p class="hint" data-hint>
-              Ontgrendel met het teamwachtwoord om je timer te starten.
-            </p>
           </section>
 
           <section class="block">
@@ -128,31 +94,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
             <p class="total" data-grand-total />
           </section>
 
-          <section class="block" data-edit-only hidden>
-            <h3 class="block-title">Achteraf toevoegen</h3>
-            <p class="hint">Timer vergeten? Vul je uren hier in.</p>
-            <form class="manual" data-manual>
-              <select name="wie" aria-label="Wie" required>
-                {team.map(({ naam }) => (
-                  <option>{naam}</option>
-                ))}
-              </select>
-              <input name="dag" type="date" aria-label="Dag" required />
-              <input name="van" type="time" aria-label="Van" required />
-              <input name="tot" type="time" aria-label="Tot" required />
-              <input
-                name="wat"
-                type="text"
-                maxlength="200"
-                placeholder="Waaraan gewerkt?"
-                aria-label="Waaraan gewerkt?"
-              />
-              <button type="submit" class="quiet-link">
-                Toevoegen
-              </button>
-            </form>
-          </section>
-
           <section class="block">
             <h3 class="block-title">Laatste sessies</h3>
             <ul class="sessions" data-sessions />
@@ -175,7 +116,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     van: string;
     tot: string;
     wat: string;
-    achteraf: boolean;
   };
 
   const root = document.querySelector<HTMLElement>("[data-days]");
@@ -183,64 +123,25 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     const db = createClient(SUPABASE.url, SUPABASE.key);
     const $ = <T extends HTMLElement>(selector: string) =>
       document.querySelector<T>(selector)!;
-    const $$ = <T extends HTMLElement>(selector: string) => [
-      ...document.querySelectorAll<T>(selector),
-    ];
-    const people = $$<HTMLFormElement>("[data-person]");
+    const people = [...document.querySelectorAll<HTMLElement>("[data-person]")];
     const names = people.map(p => p.dataset.person!);
 
     let timers: Timer[] = [];
     let sessies: Sessie[] = [];
 
-    // ---- team password, kept in this browser only until "Vergrendel"
-    const KEY = "bap-uren-wachtwoord";
-    let password: string | null = null;
-    try {
-      password = localStorage.getItem(KEY);
-    } catch {}
-    const savePassword = (value: string | null) => {
-      password = value;
-      try {
-        if (value) localStorage.setItem(KEY, value);
-        else localStorage.removeItem(KEY);
-      } catch {}
-      render();
-    };
-
-    const message = (text = "") => {
-      const el = $("[data-message]");
-      el.textContent = text;
-      el.hidden = !text;
-    };
-
-    // Calls a database function with the password. Returns true when it worked.
-    async function call(fn: string, args: Record<string, unknown>) {
-      const { error } = await db.rpc(fn, { pw: password, ...args });
-      if (!error) {
-        message();
-        return true;
-      }
-      if (/wachtwoord/i.test(error.message)) {
-        savePassword(null);
-        message("Het wachtwoord klopt niet meer. Ontgrendel opnieuw.");
-      } else {
-        message(`Dat lukte niet: ${error.message}`);
-      }
-      return false;
-    }
-
     // ---- time helpers
     const HOUR = 3600_000;
     const DAY = 24 * HOUR;
+    const pad = (n: number) => String(n).padStart(2, "0");
     const dayKey = (time: number | string) => {
       const d = new Date(time);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     };
     const length = (s: { van: string; tot: string }) =>
       Date.parse(s.tot) - Date.parse(s.van);
     const clock = (ms: number) => {
       const s = Math.max(0, Math.floor(ms / 1000));
-      return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+      return `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
     };
     // 5400000 -> "1 u 30"
     const hours = (ms: number) => {
@@ -248,11 +149,7 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       if (minutes === 0) return "–";
       const h = Math.floor(minutes / 60);
       const m = minutes % 60;
-      return h
-        ? m
-          ? `${h} u ${String(m).padStart(2, "0")}`
-          : `${h} u`
-        : `${m} min`;
+      return h ? (m ? `${h} u ${pad(m)}` : `${h} u`) : `${m} min`;
     };
     const time = (iso: string) =>
       new Date(iso).toLocaleTimeString("nl-BE", {
@@ -267,7 +164,7 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     const weekOf = (t: number) => Math.floor((t - START) / (7 * DAY)) + 1;
     let week = Math.max(1, weekOf(Date.now()));
 
-    // Hours worked on one day by one person, including a timer that is running now.
+    // Time worked on one day by one person, including a timer that is running now.
     function worked(person: string, key: string, now: number) {
       let total = sessies
         .filter(s => s.wie === person && dayKey(s.van) === key)
@@ -278,27 +175,27 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       return total;
     }
 
+    const cell = (tag: "th" | "td", text: string) => {
+      const el = document.createElement(tag);
+      el.textContent = text;
+      return el;
+    };
+
     // ---- drawing
     function renderPeople() {
       const now = Date.now();
-      const unlocked = Boolean(password);
-      for (const form of people) {
-        const person = form.dataset.person!;
+      for (const card of people) {
+        const person = card.dataset.person!;
         const timer = timers.find(t => t.wie === person);
-        form.classList.toggle("person--on", Boolean(timer));
-        form.querySelector("[data-state]")!.textContent = timer
+        card.classList.toggle("person--on", Boolean(timer));
+        card.querySelector("[data-state]")!.textContent = timer
           ? `werkt sinds ${time(timer.sinds)}${timer.wat ? ` · ${timer.wat}` : ""}`
           : "niet aan het werk";
-        form.querySelector("[data-clock]")!.textContent = timer
+        card.querySelector("[data-clock]")!.textContent = timer
           ? clock(now - Date.parse(timer.sinds))
           : "0:00:00";
-        form.querySelector("[data-today]")!.textContent =
+        card.querySelector("[data-today]")!.textContent =
           `vandaag ${hours(worked(person, dayKey(now), now))}`;
-        const input = form.querySelector<HTMLInputElement>('[name="wat"]')!;
-        const button = form.querySelector<HTMLButtonElement>("[data-toggle]")!;
-        input.hidden = !unlocked || Boolean(timer);
-        button.hidden = !unlocked;
-        button.textContent = timer ? "Stop" : "Start";
       }
     }
 
@@ -308,85 +205,70 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       const days = Array.from({ length: 7 }, (_, i) =>
         dayKey(monday + i * DAY + 12 * HOUR)
       );
+      const short = { day: "numeric", month: "short" } as const;
       $("[data-week-title]").textContent =
-        `Week ${week} · ${dayLabel(days[0], { day: "numeric", month: "short" })} – ${dayLabel(days[6], { day: "numeric", month: "short" })}`;
+        `Week ${week} · ${dayLabel(days[0], short)} – ${dayLabel(days[6], short)}`;
 
-      const rows = days.map(key => {
-        const tr = document.createElement("tr");
-        if (key === dayKey(now)) tr.className = "is-today";
-        const th = document.createElement("th");
-        th.textContent = dayLabel(key, {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-        });
-        tr.append(th);
-        for (const person of names) {
-          const td = document.createElement("td");
-          td.textContent = hours(worked(person, key, now));
-          tr.append(td);
-        }
-        return tr;
-      });
-      root!.replaceChildren(...rows);
+      root!.replaceChildren(
+        ...days.map(key => {
+          const tr = document.createElement("tr");
+          if (key === dayKey(now)) tr.className = "is-today";
+          tr.append(
+            cell("th", dayLabel(key, { weekday: "short", ...short })),
+            ...names.map(person => cell("td", hours(worked(person, key, now))))
+          );
+          return tr;
+        })
+      );
 
       const totals = document.createElement("tr");
-      const label = document.createElement("th");
-      label.textContent = "Totaal";
-      totals.append(label);
-      for (const person of names) {
-        const td = document.createElement("td");
-        td.textContent = hours(
-          days.reduce((sum, key) => sum + worked(person, key, now), 0)
-        );
-        totals.append(td);
-      }
+      totals.append(
+        cell("th", "Totaal"),
+        ...names.map(person =>
+          cell(
+            "td",
+            hours(days.reduce((sum, key) => sum + worked(person, key, now), 0))
+          )
+        )
+      );
       $("[data-totals]").replaceChildren(totals);
 
       $("[data-grand-total]").textContent = `Sinds de start: ${names
         .map(person => {
-          const all =
-            sessies
-              .filter(s => s.wie === person)
-              .reduce((sum, s) => sum + length(s), 0) +
-            timers
-              .filter(t => t.wie === person)
-              .reduce((sum, t) => sum + now - Date.parse(t.sinds), 0);
-          return `${person} ${hours(all)}`;
+          const done = sessies
+            .filter(s => s.wie === person)
+            .reduce((sum, s) => sum + length(s), 0);
+          const running = timers
+            .filter(t => t.wie === person)
+            .reduce((sum, t) => sum + now - Date.parse(t.sinds), 0);
+          return `${person} ${hours(done + running)}`;
         })
         .join(" · ")}`;
     }
 
     function renderSessions() {
-      const unlocked = Boolean(password);
       const items = [...sessies]
         .sort((a, b) => b.van.localeCompare(a.van))
         .slice(0, 15)
         .map(s => {
           const li = document.createElement("li");
-          const when = document.createElement("span");
-          when.className = "sessions__when";
-          when.textContent = `${dayLabel(dayKey(s.van), { weekday: "short", day: "numeric", month: "short" })} · ${time(s.van)}–${time(s.tot)}`;
-          const who = document.createElement("strong");
-          who.textContent = s.wie;
-          const what = document.createElement("span");
-          what.className = "sessions__what";
-          what.textContent = (s.wat || "—") + (s.achteraf ? " (achteraf)" : "");
-          const length_ = document.createElement("span");
-          length_.className = "sessions__length";
-          length_.textContent = hours(length(s));
-          li.append(when, who, what, length_);
-          if (unlocked) {
-            const remove = document.createElement("button");
-            remove.type = "button";
-            remove.className = "sessions__remove";
-            remove.textContent = "×";
-            remove.ariaLabel = "Verwijder deze sessie";
-            remove.addEventListener("click", () =>
-              call("sessie_verwijderen", { sessie: s.id })
-            );
-            li.append(remove);
-          }
+          const span = (className: string, text: string) => {
+            const el = document.createElement("span");
+            el.className = className;
+            el.textContent = text;
+            return el;
+          };
+          const day = dayLabel(dayKey(s.van), {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+          });
+          li.append(
+            span("sessions__when", `${day} · ${time(s.van)}–${time(s.tot)}`),
+            span("sessions__who", s.wie),
+            span("sessions__what", s.wat || "—"),
+            span("sessions__length", hours(length(s)))
+          );
           return li;
         });
       if (!items.length) {
@@ -399,11 +281,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     }
 
     function render() {
-      const unlocked = Boolean(password);
-      $("[data-login]").hidden = unlocked;
-      $("[data-unlocked]").hidden = !unlocked;
-      $("[data-hint]").hidden = unlocked;
-      $$("[data-edit-only]").forEach(el => (el.hidden = !unlocked));
       renderPeople();
       renderWeek();
       renderSessions();
@@ -412,19 +289,19 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     // ---- data
     async function load() {
       const [t, s] = await Promise.all([
-        db.from("timers").select("*"),
-        db.from("sessies").select("*").order("van"),
+        db.from("timers").select("wie, sinds, wat"),
+        db.from("sessies").select("id, wie, van, tot, wat").order("van"),
       ]);
-      if (t.error || s.error) {
-        message("De uren konden niet geladen worden.");
-        return;
-      }
+      const message = $("[data-message]");
+      message.hidden = !(t.error || s.error);
+      message.textContent = "De uren konden niet geladen worden.";
+      if (t.error || s.error) return;
       timers = t.data as Timer[];
       sessies = s.data as Sessie[];
       render();
     }
 
-    // Live: reload whenever someone starts, stops or adds hours.
+    // Live: reload whenever Toggl reports a change.
     db.channel("uren")
       .on(
         "postgres_changes",
@@ -445,66 +322,14 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       }
     }, 1000);
 
-    // ---- buttons and forms
-    $("[data-login]").addEventListener("submit", async event => {
-      event.preventDefault();
-      const form = event.currentTarget as HTMLFormElement;
-      const value = new FormData(form).get("pw") as string;
-      const { data, error } = await db.rpc("wachtwoord_ok", { pw: value });
-      if (error) return message("De database is niet bereikbaar.");
-      if (!data) return message("Dat wachtwoord klopt niet.");
-      form.reset();
-      message();
-      savePassword(value);
-    });
-    $("[data-logout]").addEventListener("click", () => savePassword(null));
-
-    for (const form of people) {
-      form.addEventListener("submit", async event => {
-        event.preventDefault();
-        const person = form.dataset.person!;
-        const running = timers.some(t => t.wie === person);
-        const input = form.querySelector<HTMLInputElement>('[name="wat"]')!;
-        const ok = running
-          ? await call("stop_timer", { persoon: person })
-          : await call("start_timer", {
-              persoon: person,
-              waaraan: input.value.trim(),
-            });
-        if (ok) input.value = "";
-        await load();
-      });
-    }
-
-    $$<HTMLButtonElement>("[data-week]").forEach(button =>
-      button.addEventListener("click", () => {
-        week = Math.max(1, week + Number(button.dataset.week));
-        renderWeek();
-      })
-    );
-
-    const manual = $<HTMLFormElement>("[data-manual]");
-    manual.querySelector<HTMLInputElement>('[name="dag"]')!.value = dayKey(
-      Date.now()
-    );
-    manual.addEventListener("submit", async event => {
-      event.preventDefault();
-      const data = new FormData(manual);
-      const dag = data.get("dag") as string;
-      const van = new Date(`${dag}T${data.get("van")}`);
-      const tot = new Date(`${dag}T${data.get("tot")}`);
-      if (tot <= van) return message("Het einde moet na het begin liggen.");
-      const ok = await call("sessie_toevoegen", {
-        persoon: data.get("wie"),
-        begin_tijd: van.toISOString(),
-        eind_tijd: tot.toISOString(),
-        waaraan: (data.get("wat") as string).trim(),
-      });
-      if (ok) {
-        manual.querySelector<HTMLInputElement>('[name="wat"]')!.value = "";
-        await load();
-      }
-    });
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-week]")
+      .forEach(button =>
+        button.addEventListener("click", () => {
+          week = Math.max(1, week + Number(button.dataset.week));
+          renderWeek();
+        })
+      );
 
     render();
     load();
@@ -517,8 +342,10 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     margin-bottom: var(--space-m);
     color: var(--muted);
   }
-  .empty,
-  .hint {
+  .intro strong {
+    color: var(--ink);
+  }
+  .empty {
     font-size: var(--fs-sm);
     color: var(--muted);
   }
@@ -530,28 +357,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     border-radius: 8px;
     background-color: var(--card);
     font-size: var(--fs-sm);
-  }
-  .login,
-  .unlocked {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: var(--fs-sm);
-    color: var(--muted);
-  }
-  input,
-  select {
-    padding: 0.4rem 0.7rem;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background-color: var(--card);
-    font-size: var(--fs-sm);
-    color: var(--ink);
-  }
-  input:focus,
-  select:focus {
-    outline: 2px solid var(--blue);
-    outline-offset: 1px;
   }
   .block {
     margin-bottom: var(--space-l);
@@ -565,7 +370,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: 0.75rem;
-    margin-bottom: 0.5rem;
   }
   .person {
     display: flex;
@@ -612,19 +416,6 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     font-size: var(--fs-sm);
     color: var(--muted);
   }
-  .toggle {
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    background-color: var(--blue);
-    color: #fff;
-    font-size: var(--fs-sm);
-    font-weight: 600;
-  }
-  .person--on .toggle {
-    border: 1px solid var(--ink);
-    background-color: var(--card);
-    color: var(--ink);
-  }
   .week-switch {
     display: flex;
     align-items: center;
@@ -646,20 +437,18 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     font-size: var(--fs-sm);
     font-variant-numeric: tabular-nums;
   }
-  .hours th,
   .hours :global(td),
   .hours :global(th) {
     padding: 0.55rem 1rem;
     text-align: right;
     white-space: nowrap;
   }
-  .hours th:first-child,
   .hours :global(th:first-child) {
     text-align: left;
     font-weight: 500;
     color: var(--muted);
   }
-  .hours thead th {
+  .hours thead :global(th) {
     border-bottom: 1px solid var(--line);
     font-weight: 700;
     color: var(--ink);
@@ -683,22 +472,13 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     font-size: var(--fs-sm);
     color: var(--muted);
   }
-  .manual {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
-  .manual [name="wat"] {
-    flex: 1 1 12rem;
-  }
   .sessions {
     display: flex;
     flex-direction: column;
   }
   .sessions :global(li) {
     display: grid;
-    grid-template-columns: 12rem 5rem 1fr auto auto;
+    grid-template-columns: 12rem 5rem 1fr auto;
     gap: 0.75rem;
     align-items: baseline;
     padding: 0.55rem 0;
@@ -708,21 +488,17 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
   .sessions :global(li:first-child) {
     border-top: 0;
   }
+  .sessions :global(.sessions__who) {
+    font-weight: 700;
+  }
   .sessions :global(.sessions__when),
   .sessions :global(.sessions__length) {
     color: var(--muted);
     white-space: nowrap;
   }
-  .sessions :global(.sessions__remove) {
-    padding: 0 0.4rem;
-    color: var(--muted);
-  }
-  .sessions :global(.sessions__remove:hover) {
-    color: #e11d48;
-  }
   @media (max-width: 40rem) {
     .sessions :global(li) {
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto;
       row-gap: 0.1rem;
     }
     .sessions :global(.sessions__when) {

@@ -11,7 +11,9 @@
       "@layouts/*": ["layouts/*"],
       "@pages/*": ["pages/*"],
       "@styles/*": ["styles/*"],
-      "@utils/*": ["utils/*"],
-    },
+      "@utils/*": ["utils/*"]
+    }
   },
+  // Edge functions run on Deno in Supabase, not in Astro.
+  "exclude": ["dist", "supabase/functions"]
 }
