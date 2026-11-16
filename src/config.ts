@@ -22,3 +22,11 @@ export const LOGO_IMAGE = {
   width: 216,
   height: 46,
 };
+
+// Supabase project for the "Uren" page (live timers and hours). Both values are meant to be
+// public: visitors can only read, and every change needs the team password (see supabase/uren.sql).
+// Find them in Supabase under Project Settings -> API.
+export const SUPABASE = {
+  url: "",
+  key: "",
+};

@@ -21,6 +21,7 @@
     "@astrojs/rss": "^4.0.19",
     "@mux/mux-player": "^3.14.1",
     "@resvg/resvg-js": "^2.6.0",
+    "@supabase/supabase-js": "^2.119.0",
     "astro": "^5.18.2",
     "github-slugger": "^2.0.0",
     "remark-collapse": "^0.1.2",
