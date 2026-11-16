@@ -4,7 +4,6 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import PostExtras from "@components/PostExtras.astro";
 import PostBody from "@components/blokken/PostBody.astro";
-import { bewerkUrl } from "@utils/editor";
 import { vimeoEmbed, muxVideo } from "@utils/vimeo";
 import MuxVideo from "@components/MuxVideo.astro";
 import type { CollectionEntry } from "astro:content";
@@ -40,7 +39,7 @@ const mux = vimeo
   : muxVideo(post.data.video ?? post.data.videos[0]?.link);
 
 const { Content } = await post.render();
-// Posts made in TinaCMS are built from blocks (src/components/blokken/).
+// Posts from "Posts (blokken)" in Pages CMS are built from blocks (src/components/blokken/).
 const blokPost = (post.data.inhoud ?? []).length > 0;
 
 const ogImageUrl = typeof ogImage === "string" ? ogImage : ogImage?.src;
@@ -67,18 +66,6 @@ const layoutProps = {
   <main id="main-content" class="post">
     <p class="post-top">
       <a href={`${base}posts/`} class="post-back">alle posts</a>
-      {
-        bewerkUrl(post.slug) && (
-          <a
-            href={bewerkUrl(post.slug)!}
-            target="_blank"
-            rel="noopener"
-            class="quiet-link"
-          >
-            bewerk deze post
-          </a>
-        )
-      }
     </p>
 
     {

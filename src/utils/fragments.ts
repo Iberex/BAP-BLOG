@@ -41,7 +41,7 @@ export const tagsOf = (paragraph: string) =>
 export const fragmentId = (blok: string, index: number) =>
   `fragment-${blok}-${index}`;
 
-// TinaCMS text is Markdown: "**vet**", "[link](url)", "* punt" -> plain text.
+// Block text is Markdown: "**vet**", "[link](url)", "* punt" -> plain text.
 export const plainText = (text: string) =>
   text
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
@@ -49,7 +49,7 @@ export const plainText = (text: string) =>
     .replace(/[*_`]/g, "")
     .trim();
 
-// Anchor of a TinaCMS text block, so a filter can link straight to it.
+// Anchor of a text block, so a filter can link straight to it.
 export const blokId = (index: number) => `fragment-inhoud-${index}`;
 
 type Data = {
@@ -68,7 +68,7 @@ export const fragments = ({ soort, blokken, inhoud }: Data) => [
         : [];
     })
   ),
-  // TinaCMS posts: the "Tekst" and "Vraag" blocks.
+  // Block posts: the "Tekst" and "Vraag" blocks.
   ...(inhoud ?? []).flatMap((blok, index) =>
     blok._template === "tekst" || blok._template === "vraag"
       ? paragraphs(blok.tekst)

@@ -42,7 +42,7 @@ const blog = defineCollection({
           .array(z.object({ src: text, bijschrift: text }))
           .nullish()
           .transform(list => (list ?? []).filter(beeld => beeld.src)),
-        // Blocks of a TinaCMS post, in order (see tina/config.ts).
+        // Blocks of a post from "Posts (blokken)" in Pages CMS, in order.
         inhoud: z
           .array(z.object({ _template: z.string() }).passthrough())
           .nullish(),
@@ -76,7 +76,7 @@ const blog = defineCollection({
             ...(data.soort === "ai" ? ["ai"] : []),
           ]),
         ];
-        // A TinaCMS post has no "beelden" list: the overview card uses its first picture.
+        // A block post has no "beelden" list: the overview card uses its first picture.
         const eersteBeeld = (data.inhoud ?? [])
           .flatMap(blok =>
             blok._template === "beeld"

@@ -37,11 +37,5 @@ pnpm-debug.log*
 # AI paragraph labels (restored by actions/cache in CI)
 .cache/
 
-# TinaCMS build output
-public/admin/
-tina/__generated__/
-
-# TinaCMS logins: made during the Netlify build, never committed
-content/users/
 # Netlify
 .netlify/

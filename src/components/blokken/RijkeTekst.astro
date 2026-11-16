@@ -1,8 +1,6 @@
 ---
-// Text with formatting from a Tina rich-text field. On the site it is Markdown
-// (as saved in the .md file); inside the editor Tina sends its own tree.
+// Text with formatting from a block: Markdown, as saved in the .md file.
 import { createMarkdownProcessor } from "@astrojs/markdown-remark";
-import TinaMarkdown from "@tinacms/astro/TinaMarkdown.astro";
 
 export interface Props {
   tekst?: unknown;
@@ -10,19 +8,13 @@ export interface Props {
 
 const { tekst } = Astro.props;
 const html =
-  typeof tekst === "string"
+  typeof tekst === "string" && tekst
     ? (await (await createMarkdownProcessor()).render(tekst)).code
-    : null;
+    : "";
 ---
 
 <div class="rijke-tekst">
-  {
-    html !== null ? (
-      <Fragment set:html={html} />
-    ) : (
-      tekst && <TinaMarkdown content={tekst as never} />
-    )
-  }
+  <Fragment set:html={html} />
 </div>
 
 <style>

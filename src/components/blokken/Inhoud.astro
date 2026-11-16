@@ -1,7 +1,6 @@
 ---
-// The blocks of a TinaCMS post, in the order the writer chose. Every block
+// The blocks of a post, in the order the writer chose. Every block
 // type has one fixed look, so every post feels like the same blog.
-import { tinaField } from "@tinacms/astro/tina-field";
 import RijkeTekst from "./RijkeTekst.astro";
 import MuxVideo from "@components/MuxVideo.astro";
 import { vimeoEmbed, muxVideo } from "@utils/vimeo";
@@ -12,17 +11,12 @@ export interface Props {
   blokken?: Record<string, any>[] | null;
 }
 
-// Saved files name the block "_template"; Tina's editor data "__typename"
-// (e.g. "PostInhoudTekst").
+// Saved files name the block type "_template".
 const soort = (blok: Record<string, any>) =>
-  String(blok._template ?? blok.__typename ?? "")
-    .replace(/^PostInhoud/, "")
-    .toLowerCase();
+  String(blok._template ?? "").toLowerCase();
 
 // Not filtered: the index must match blokId() in src/utils/fragments.ts.
 const blokken = Astro.props.blokken ?? [];
-const field = (object: unknown, property?: string) =>
-  tinaField(object as never, property as never) || undefined;
 
 // "/beelden/plan.pdf" -> "PDF"
 const bestandstype = (src?: string) =>
@@ -38,30 +32,16 @@ const bestandstype = (src?: string) =>
       if (!blok) return null;
       switch (soort(blok)) {
         case "tussentitel":
-          return (
-            blok.titel && (
-              <h2 class="tussentitel" data-tina-field={field(blok, "titel")}>
-                {blok.titel}
-              </h2>
-            )
-          );
+          return blok.titel && <h2 class="tussentitel">{blok.titel}</h2>;
         case "tekst":
           return (
-            <div
-              id={blokId(index)}
-              class="blok"
-              data-tina-field={field(blok, "tekst")}
-            >
+            <div id={blokId(index)} class="blok">
               <RijkeTekst tekst={blok.tekst} />
             </div>
           );
         case "vraag":
           return (
-            <section
-              id={blokId(index)}
-              class="blok"
-              data-tina-field={field(blok)}
-            >
+            <section id={blokId(index)} class="blok">
               {blok.vraag && <h3 class="vraag">{blok.vraag}</h3>}
               <RijkeTekst tekst={blok.tekst} />
             </section>
@@ -69,7 +49,7 @@ const bestandstype = (src?: string) =>
         case "beeld":
           return (
             blok.src && (
-              <figure class="blok beeld" data-tina-field={field(blok)}>
+              <figure class="blok beeld">
                 <img
                   src={mediaSrc(blok.src)}
                   alt={blok.bijschrift ?? ""}
@@ -81,7 +61,7 @@ const bestandstype = (src?: string) =>
           );
         case "galerij":
           return (
-            <div class="blok galerij" data-tina-field={field(blok)}>
+            <div class="blok galerij">
               {(blok.beelden ?? [])
                 .filter((b: any) => b?.src)
                 .map((b: any) => (
@@ -103,7 +83,7 @@ const bestandstype = (src?: string) =>
           const mux = vimeo ? null : muxVideo(blok.link);
           return (
             (vimeo || mux) && (
-              <figure class="blok video" data-tina-field={field(blok)}>
+              <figure class="blok video">
                 {mux ? (
                   <MuxVideo {...mux} title={blok.titel} class="frame" />
                 ) : (
@@ -129,7 +109,6 @@ const bestandstype = (src?: string) =>
                 href={mediaSrc(blok.src)}
                 target="_blank"
                 rel="noopener"
-                data-tina-field={field(blok)}
               >
                 <span class="bestandstype">{bestandstype(blok.src)}</span>
                 {blok.naam || decodeURIComponent(blok.src.split("/").pop())}
@@ -139,7 +118,7 @@ const bestandstype = (src?: string) =>
         case "citaat":
           return (
             blok.citaat && (
-              <blockquote class="blok citaat" data-tina-field={field(blok)}>
+              <blockquote class="blok citaat">
                 <p>{blok.citaat}</p>
                 {blok.wie && <footer>— {blok.wie}</footer>}
               </blockquote>
@@ -154,7 +133,7 @@ const bestandstype = (src?: string) =>
           ].filter(([, waarde]) => waarde);
           return (
             feiten.length > 0 && (
-              <dl class="blok cijfers" data-tina-field={field(blok)}>
+              <dl class="blok cijfers">
                 {feiten.map(([label, waarde]) => (
                   <div>
                     <dt>{label}</dt>
@@ -168,7 +147,7 @@ const bestandstype = (src?: string) =>
         case "actiepunten":
           return (
             (blok.punten ?? []).length > 0 && (
-              <section class="blok" data-tina-field={field(blok)}>
+              <section class="blok">
                 <h3 class="vraag">Actiepunten</h3>
                 <ul class="punten">
                   {blok.punten.map((punt: string) => (
