@@ -143,18 +143,13 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       const s = Math.max(0, Math.floor(ms / 1000));
       return `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
     };
-    // 5400000 -> "1 u 30"
-    const hours = (ms: number) => {
-      const minutes = Math.round(ms / 60_000);
-      if (minutes === 0) return "–";
-      const h = Math.floor(minutes / 60);
-      const m = minutes % 60;
-      return h ? (m ? `${h} u ${pad(m)}` : `${h} u`) : `${m} min`;
-    };
+    // 5412000 -> "1:30:12", exact to the second, never rounded
+    const hours = (ms: number) => (Math.floor(ms / 1000) > 0 ? clock(ms) : "–");
     const time = (iso: string) =>
       new Date(iso).toLocaleTimeString("nl-BE", {
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
       });
     const dayLabel = (key: string, options: Intl.DateTimeFormatOptions) =>
       new Date(`${key}T12:00:00`).toLocaleDateString("nl-BE", options);
