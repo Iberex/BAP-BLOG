@@ -17,10 +17,11 @@ content:
       - { name: title, label: Titel, type: string, required: true }
       - { name: author, label: Wie schrijft?, type: select, options: { values: [ Ibe, Tjorven, Senne ] } }
       - name: soort
-        label: Soort post
+        label: "Soort post (één of meer)"
         type: select
-        options: { values: [ weekverslag, dagboek, research, experiment, playtest, feedback, meeting, ai, reflectie, algemeen ] }
+        options: { multiple: true, values: [ weekverslag, dagboek, research, experiment, playtest, feedback, meeting, ai, reflectie, algemeen ] }
       - { name: pijler, label: "Pijler(s)", type: select, options: { multiple: true, values: [ UX, DESIGN, DEV ] } }
+      - { name: taak, label: "Taak in de planning (naam, precies zoals in de planning)", type: string }
       - { name: samenvatting, label: "Samenvatting (1-2 zinnen)", type: text }
       - name: inhoud
         label: "Inhoud – blokken, in de volgorde die je wil"

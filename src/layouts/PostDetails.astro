@@ -30,6 +30,7 @@ const {
   tags,
   pijlers,
   soort,
+  soorten,
 } = post.data;
 
 const { Content } = await post.render();
@@ -73,6 +74,7 @@ const layoutProps = {
             title={title}
             author={author}
             soort={soort}
+            soorten={soorten}
             date={pubDatetime}
             pijlers={pijlers}
             cover={post.data.beelden?.[0]?.src}

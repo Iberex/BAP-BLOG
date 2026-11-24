@@ -8,12 +8,17 @@ export interface Props {
 }
 
 const data = Astro.props.data ?? {};
+// A picture as the very first block is the cover: show it once, at the top.
+const inhoud = data.inhoud ?? [];
+const blokken = inhoud[0]?._template === "beeld" ? inhoud.slice(1) : inhoud;
 ---
 
 <PostHead
   title={data.title}
   author={data.author}
   soort={data.soort}
+  soorten={data.soorten}
+  taak={data.taak}
   date={data.pubDatetime}
   pijlers={data.pijlers}
   cover={data.beelden?.[0]?.src}
@@ -21,5 +26,5 @@ const data = Astro.props.data ?? {};
 
 <div class="post-content">
   {data.samenvatting && <p class="summary">{data.samenvatting}</p>}
-  <Inhoud blokken={data.inhoud} />
+  <Inhoud blokken={blokken} />
 </div>

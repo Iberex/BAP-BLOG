@@ -10,12 +10,15 @@ export interface Props {
   title?: string;
   author?: string;
   soort?: string;
+  soorten?: string[];
+  taak?: string | null;
   date?: Date | string;
   pijlers?: string[];
   cover?: string;
 }
 
-const { title, author, soort, date, pijlers = [], cover } = Astro.props;
+const { title, author, soort, date, pijlers = [], cover, taak } = Astro.props;
+const soorten = Astro.props.soorten ?? (soort ? [soort] : []);
 const base = import.meta.env.BASE_URL;
 const datum = date ? new Date(date) : null;
 const photo = ["Ibe", "Tjorven", "Senne"].includes(author ?? "")
@@ -49,10 +52,18 @@ const photo = ["Ibe", "Tjorven", "Senne"].includes(author ?? "")
       )
     }
     {
-      soort && (
-        <a href={`${base}posts/?soort=${slugifyStr(soort)}`} class="tag">
+      soorten.map(s => (
+        <a href={`${base}posts/?soort=${slugifyStr(s)}`} class="tag">
           <Fragment set:html={iconSvg("tag")} />
-          {SOORTEN[soort]?.label ?? soort}
+          {SOORTEN[s]?.label ?? s}
+        </a>
+      ))
+    }
+    {
+      taak && (
+        <a href={`${base}planning/`} class="tag tag--taak">
+          <Fragment set:html={iconSvg("list-checks")} />
+          Taak: {taak}
         </a>
       )
     }

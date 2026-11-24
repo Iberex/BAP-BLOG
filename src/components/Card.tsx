@@ -15,7 +15,7 @@ export default function Card({ href, frontmatter }: Props) {
   const {
     title,
     pubDatetime,
-    soort,
+    soorten,
     onderwerpen,
     beelden,
     fragments,
@@ -28,7 +28,7 @@ export default function Card({ href, frontmatter }: Props) {
     <li
       className="post-row card"
       data-pijlers={onderwerpen.join(" ")}
-      data-soort={soort ? slugifyStr(soort) : ""}
+      data-soort={soorten.map(s => slugifyStr(s)).join(" ")}
     >
       <a href={href} className="card__link">
         {beelden[0] ? (
@@ -37,15 +37,15 @@ export default function Card({ href, frontmatter }: Props) {
           <span className="card__blank" />
         )}
         <p className="card__tags">
-          {soort && (
-            <span className="tag">
+          {soorten.map(soort => (
+            <span className="tag" key={soort}>
               <span
                 className="tag-icon"
                 dangerouslySetInnerHTML={{ __html: iconSvg("tag") }}
               />
               {SOORTEN[soort]?.label ?? soort}
             </span>
-          )}
+          ))}
         </p>
         <h4 className="card__title">{title}</h4>
         <p className="card__text">{samenvatting}</p>

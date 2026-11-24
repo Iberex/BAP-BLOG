@@ -21,7 +21,10 @@ const blog = defineCollection({
         tags: z.array(z.string()).optional(),
         // One pillar (older posts) or several (a post can combine pillars).
         pijler: z.union([z.string(), z.array(z.string())]).nullish(),
-        soort: z.string().optional(),
+        // One type (older posts) or several (a post can be a reflection and general at once).
+        soort: z.union([z.string(), z.array(z.string())]).nullish(),
+        // Name of the planning task this post belongs to, shown at the top of the post.
+        taak: text,
         samenvatting: text,
         video: text,
         videos: z
@@ -67,13 +70,14 @@ const blog = defineCollection({
           .flat()
           .filter(p => p && p.toLowerCase() !== "algemeen");
         // Paragraphs about UX, Design, Development or AI, recognised automatically.
-        const found = fragments(data);
+        const soorten = [data.soort ?? []].flat().filter(Boolean);
+        const found = fragments({ ...data, soort: soorten[0] });
         // Pillars for the filter: chosen in the CMS, found in the text, or AI for an AI post.
         const onderwerpen = [
           ...new Set([
             ...pijlers.map(p => p.toLowerCase()),
             ...found.flatMap(f => f.tags),
-            ...(data.soort === "ai" ? ["ai"] : []),
+            ...(soorten.includes("ai") ? ["ai"] : []),
           ]),
         ];
         // A block post has no "beelden" list: the overview card uses its first picture.
@@ -92,12 +96,14 @@ const blog = defineCollection({
             data.beelden.length || !eersteBeeld
               ? data.beelden
               : [{ src: mediaSrc(String(eersteBeeld.src)), bijschrift: null }],
+          soort: soorten[0],
+          soorten,
           pijlers,
           fragments: found,
           onderwerpen,
           tags: data.tags ?? [
             ...new Set(
-              [data.soort, ...onderwerpen]
+              [...soorten, ...onderwerpen]
                 .filter((tag): tag is string => !!tag)
                 .map(tag => tag.toLowerCase())
             ),

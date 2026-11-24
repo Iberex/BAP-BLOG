@@ -13,8 +13,11 @@ create table if not exists planning (
   tot date not null,
   status text not null default 'Te doen' check (status in ('Te doen', 'Bezig', 'Klaar')),
   notitie text not null default '',
+  post text,
   check (tot >= van)
 );
+-- Link to the blog post about a task (added later, safe to run again).
+alter table planning add column if not exists post text;
 
 -- One code per team member. Nobody can read this table from the browser.
 create table if not exists planning_code (
@@ -44,10 +47,11 @@ begin
       van = coalesce((rij->>'van')::date, van),
       tot = coalesce((rij->>'tot')::date, tot),
       status = coalesce(rij->>'status', status),
-      notitie = coalesce(rij->>'notitie', notitie)
+      notitie = coalesce(rij->>'notitie', notitie),
+      post = case when rij ? 'post' then nullif(rij->>'post', '') else post end
     where id = (rij->>'id')::uuid;
   else
-    insert into planning (taak, soort, pijler, wie, van, tot, status, notitie) values (
+    insert into planning (taak, soort, pijler, wie, van, tot, status, notitie, post) values (
       rij->>'taak',
       coalesce(rij->>'soort', 'Taak'),
       coalesce(rij->>'pijler', 'Algemeen'),
@@ -55,7 +59,8 @@ begin
       (rij->>'van')::date,
       coalesce((rij->>'tot')::date, (rij->>'van')::date),
       coalesce(rij->>'status', 'Te doen'),
-      coalesce(rij->>'notitie', '')
+      coalesce(rij->>'notitie', ''),
+      nullif(rij->>'post', '')
     );
   end if;
 end;

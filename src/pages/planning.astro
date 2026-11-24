@@ -16,6 +16,7 @@ const ICON_NAMES: Record<string, string> = {
   Overleg: "message-circle",
   pencil: "pencil",
   check: "check",
+  link: "link",
 };
 const iconBodies = Object.fromEntries(
   Object.entries(ICON_NAMES).map(([key, name]) => [
@@ -161,6 +162,8 @@ const iconBodies = Object.fromEntries(
     tot: string;
     status: string;
     notitie: string;
+    // Link to the blog post about this task (optional).
+    post: string | null;
   };
 
   const db = createClient(SUPABASE.url, SUPABASE.key);
@@ -187,6 +190,15 @@ const iconBodies = Object.fromEntries(
         : item.pijler;
   const svg = (kind: string) =>
     `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[kind] ?? ICONS.Algemeen}</svg>`;
+  // Link to the blog post of a task; a click on it does not open the task.
+  const postLink = (href: string, cls: string) => {
+    const a = document.createElement("a");
+    a.href = href;
+    a.className = cls;
+    a.innerHTML = `${svg("link")} Blogpost`;
+    a.addEventListener("click", e => e.stopPropagation());
+    return a;
+  };
   const icon = (kind: string) => {
     const node = document.createElement("span");
     node.className = "ico";
@@ -340,12 +352,15 @@ const iconBodies = Object.fromEntries(
     const soort = choice(["Taak", "Overleg", "Deadline"], item.soort, "Soort");
     const notitie = field("text", item.notitie, "grow");
     notitie.placeholder = "Notitie";
+    const post = field("url", item.post ?? "", "grow");
+    post.placeholder = "Link naar blogpost";
     const more = el("details", "more");
     const moreBody = el("div", "panel__line");
     moreBody.append(
       pijler,
       soort,
       notitie,
+      post,
       button("quiet-link danger", "taak verwijderen", () => {
         changing = null;
         removeItem(item.id);
@@ -376,6 +391,7 @@ const iconBodies = Object.fromEntries(
           pijler: pijler.value,
           soort: soort.value,
           notitie: notitie.value.trim(),
+          post: post.value.trim(),
         });
       })
     );
@@ -420,7 +436,14 @@ const iconBodies = Object.fromEntries(
   // ---- popover for short bars (shown instantly, no native tooltip)
   let pop: HTMLDivElement | null = null;
   let popFor: HTMLElement | null = null;
+  // Leaving a bar closes its popover a moment later, so you can still reach its link.
+  let popTimer = 0;
+  function hidePopSoon() {
+    clearTimeout(popTimer);
+    popTimer = window.setTimeout(hidePop, 200);
+  }
   function hidePop() {
+    clearTimeout(popTimer);
     if (pop) pop.hidden = true;
     popFor?.classList.remove("tl-bar--hover");
     popFor = null;
@@ -431,6 +454,8 @@ const iconBodies = Object.fromEntries(
       pop.className = "tl-pop";
       pop.setAttribute("role", "tooltip");
       document.body.append(pop);
+      pop.addEventListener("pointerenter", () => clearTimeout(popTimer));
+      pop.addEventListener("pointerleave", hidePopSoon);
       // Touch: tap elsewhere closes it.
       document.addEventListener("pointerdown", e => {
         if (popFor && !popFor.contains(e.target as Node)) hidePop();
@@ -455,7 +480,8 @@ const iconBodies = Object.fromEntries(
         item.soort === "Taak" ? item.pijler : item.soort
       ),
       row(el("span", "tl-pop-key", "Status"), status, item.status),
-      ...(item.notitie ? [el("div", "tl-pop-note", item.notitie)] : [])
+      ...(item.notitie ? [el("div", "tl-pop-note", item.notitie)] : []),
+      ...(item.post ? [postLink(item.post, "tl-pop-post")] : [])
     );
     pop.hidden = false;
     popFor?.classList.remove("tl-bar--hover");
@@ -623,7 +649,7 @@ const iconBodies = Object.fromEntries(
             if (e.pointerType !== "touch") showPop(bar, item);
           });
           bar.addEventListener("pointerleave", e => {
-            if (e.pointerType !== "touch") hidePop();
+            if (e.pointerType !== "touch") hidePopSoon();
           });
           bar.addEventListener("focus", () => showPop(bar, item));
           bar.addEventListener("blur", hidePop);
@@ -675,6 +701,7 @@ const iconBodies = Object.fromEntries(
           );
           const what = el("span", "list-what");
           what.append(icon(kindOf(item)), item.taak);
+          if (item.post) what.append(postLink(item.post, "list-post"));
           row.append(
             el(
               "span",
@@ -1191,6 +1218,22 @@ const iconBodies = Object.fromEntries(
     margin-bottom: 0.2rem;
     border-bottom: 1px solid var(--line);
     color: var(--muted);
+  }
+  .tl-pop-post,
+  .list-post {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .tl-pop-post {
+    margin-top: 0.3rem;
+  }
+  .list-post {
+    margin-left: 0.6rem;
+    font-size: 0.85rem;
   }
   .tl-pop-note {
     margin-top: 0.3rem;

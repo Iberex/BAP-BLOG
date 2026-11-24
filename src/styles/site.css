@@ -344,7 +344,7 @@ a:hover {
 .post {
   box-sizing: border-box;
   width: 100%;
-  max-width: 46rem;
+  max-width: 64rem;
   margin: 0 auto;
   padding: var(--space-m) var(--space-s) 0;
 }
@@ -1074,4 +1074,19 @@ a.stat:hover {
 .stat__of {
   font-size: var(--fs-sm);
   color: var(--muted);
+}
+
+/* Posts: text stays a calm reading column, pictures and videos use the full sheet width. */
+.post-sheet .post-head__top,
+.post-sheet .post-meta,
+.post-sheet .post-content > *,
+.post-sheet .inhoud > * {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+.post-sheet .post-content > .inhoud,
+.post-sheet .inhoud > .beeld,
+.post-sheet .inhoud > .galerij,
+.post-sheet .inhoud > .video {
+  max-width: none;
 }

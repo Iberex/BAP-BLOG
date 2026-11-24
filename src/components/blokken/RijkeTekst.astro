@@ -34,6 +34,10 @@ const html =
   .rijke-tekst :global(a) {
     @apply underline decoration-dashed underline-offset-4;
   }
+  /* A logo in a sentence: as small as the text. */
+  .rijke-tekst :global(img) {
+    @apply inline-block h-5 w-5 rounded align-text-bottom;
+  }
   .rijke-tekst :global(strong) {
     @apply font-semibold;
   }

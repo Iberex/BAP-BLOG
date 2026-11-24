@@ -33,9 +33,7 @@ const PIJLER_ICON: Record<string, string> = {
 };
 
 const soorten = [
-  ...new Set(
-    paginatedPosts.map(({ data }) => data.soort).filter(Boolean) as string[]
-  ),
+  ...new Set(paginatedPosts.flatMap(({ data }) => data.soorten)),
 ].sort();
 ---
 
@@ -187,7 +185,7 @@ const soorten = [
       rows.forEach(row => {
         const match =
           (!pijler || row.dataset.pijlers?.split(" ").includes(pijler)) &&
-          (!soort || row.dataset.soort === soort);
+          (!soort || row.dataset.soort?.split(" ").includes(soort));
         row.hidden = !match;
         const box = row.querySelector<HTMLElement>(".card__fragments");
         if (box) {
