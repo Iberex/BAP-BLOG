@@ -2,6 +2,7 @@ import { LOCALE } from "@config";
 import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel } from "@utils/pijlers";
 import { SOORTEN } from "@utils/soorten";
+import { iconSvg, pijlerIconSvg } from "@utils/icons";
 import type { CollectionEntry } from "astro:content";
 
 export interface Props {
@@ -35,10 +36,30 @@ export default function Card({ href, frontmatter }: Props) {
         ) : (
           <span className="card__blank" />
         )}
-        <p className="card__date">
+        <p className="card__tags">
           {soort && (
-            <span className="card__soort">
+            <span className="tag">
+              <span
+                className="tag-icon"
+                dangerouslySetInnerHTML={{ __html: iconSvg("tag") }}
+              />
               {SOORTEN[soort]?.label ?? soort}
+            </span>
+          )}
+        </p>
+        <h4 className="card__title">{title}</h4>
+        <p className="card__text">{samenvatting}</p>
+        <p className="card__date">
+          {author && (
+            <span className="post-author">
+              {["Ibe", "Tjorven", "Senne"].includes(author) && (
+                <img
+                  src={`${import.meta.env.BASE_URL}team/${author.toLowerCase()}.jpg`}
+                  alt=""
+                  className="post-avatar"
+                />
+              )}
+              {author}
             </span>
           )}
           <time dateTime={date.toISOString()}>
@@ -48,10 +69,7 @@ export default function Card({ href, frontmatter }: Props) {
               year: "numeric",
             })}
           </time>
-          {author && <span>{author}</span>}
         </p>
-        <h4 className="card__title">{title}</h4>
-        <p className="card__text">{samenvatting}</p>
       </a>
       {(fragments.length > 0 || samenvatting) && (
         <div className="card__fragments" hidden>
@@ -72,7 +90,11 @@ export default function Card({ href, frontmatter }: Props) {
               <span className="fragment__label">
                 {fragment.label}
                 {fragment.tags.map(tag => (
-                  <span key={tag} className={`fragment__tag pill-${tag}`}>
+                  <span key={tag} className="fragment__tag">
+                    <span
+                      className="tag-icon"
+                      dangerouslySetInnerHTML={{ __html: pijlerIconSvg(tag) }}
+                    />
                     {pijlerLabel(tag)}
                   </span>
                 ))}

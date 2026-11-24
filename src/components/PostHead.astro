@@ -4,6 +4,7 @@ import { slugifyStr } from "@utils/slugify";
 import { pijlerLabel } from "@utils/pijlers";
 import { SOORTEN } from "@utils/soorten";
 import { LOCALE } from "@config";
+import { iconSvg, pijlerIconSvg } from "@utils/icons";
 
 export interface Props {
   title?: string;
@@ -11,35 +12,30 @@ export interface Props {
   soort?: string;
   date?: Date | string;
   pijlers?: string[];
+  cover?: string;
 }
 
-const { title, author, soort, date, pijlers = [] } = Astro.props;
+const { title, author, soort, date, pijlers = [], cover } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const datum = date ? new Date(date) : null;
-// "Ibe" -> "I", "Team BAP" -> "TB"
-const initials = (author ?? "")
-  .split(/\s+/)
-  .map(word => word[0])
-  .join("")
-  .slice(0, 2)
-  .toUpperCase();
+const photo = ["Ibe", "Tjorven", "Senne"].includes(author ?? "")
+  ? `${base}team/${author!.toLowerCase()}.jpg`
+  : null;
 ---
 
 <header class="post-head">
+  {cover && <img src={cover} alt="" class="post-cover" />}
   <div class="post-head__top">
     <h1 class="post-title">{title}</h1>
     {
-      pijlers.length > 0 && (
-        <p class="post-pijlers">
-          {pijlers.map(p => (
-            <a
-              href={`${base}posts/?pijler=${slugifyStr(p)}`}
-              class={`pill pill-${slugifyStr(p)}`}
-            >
-              {pijlerLabel(p)}
-            </a>
-          ))}
-        </p>
+      datum && (
+        <time class="post-date" datetime={datum.toISOString()}>
+          {datum.toLocaleDateString(LOCALE.langTag, {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </time>
       )
     }
   </div>
@@ -47,30 +43,26 @@ const initials = (author ?? "")
     {
       author && (
         <span class="post-author">
-          <span class="post-avatar" aria-hidden="true">
-            {initials}
-          </span>
+          {photo && <img src={photo} alt="" class="post-avatar" />}
           {author}
         </span>
       )
     }
     {
-      datum && (
-        <time datetime={datum.toISOString()}>
-          {datum.toLocaleDateString(LOCALE.langTag, {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </time>
-      )
-    }
-    {
       soort && (
-        <a href={`${base}posts/?soort=${slugifyStr(soort)}`} class="post-soort">
+        <a href={`${base}posts/?soort=${slugifyStr(soort)}`} class="tag">
+          <Fragment set:html={iconSvg("tag")} />
           {SOORTEN[soort]?.label ?? soort}
         </a>
       )
+    }
+    {
+      pijlers.map(p => (
+        <a href={`${base}posts/?pijler=${slugifyStr(p)}`} class="tag">
+          <Fragment set:html={pijlerIconSvg(slugifyStr(p))} />
+          {pijlerLabel(p)}
+        </a>
+      ))
     }
   </p>
 </header>

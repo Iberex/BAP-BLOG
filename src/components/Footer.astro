@@ -7,15 +7,19 @@ export interface Props {
 }
 
 // Posts, home and team are edited in Pages CMS.
+const order = ["Senne", "Tjorven", "Ibe"];
+const names = team
+  .map(({ naam }) => naam)
+  .sort((a, b) => order.indexOf(a) - order.indexOf(b));
 const pagesCms = "https://app.pagescms.org/iberex/BAP-BLOG";
 ---
 
 <footer class="site-footer">
-  <p>
-    <span class="site-footer__title">{home.titel}</span>
-    · {team.map(({ naam }) => naam).join(", ")}
-  </p>
-  <p class="site-footer__links">
+  <div class="site-footer__who">
+    <span class="site-footer__title">Bachelorproef</span>
+    <span class="site-footer__team">{names.join(", ")}</span>
+  </div>
+  <div class="site-footer__links">
     {home.email && <a href={`mailto:${home.email}`}>{home.email}</a>}
     {
       home.links.map(({ naam, url }) => (
@@ -25,5 +29,5 @@ const pagesCms = "https://app.pagescms.org/iberex/BAP-BLOG";
       ))
     }
     <a href={pagesCms} target="_blank" rel="noopener">Beheer</a>
-  </p>
+  </div>
 </footer>

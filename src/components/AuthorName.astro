@@ -5,32 +5,19 @@ export interface Props {
 
 const { name } = Astro.props;
 
-// Sticker per teamlid: zet een PNG in public/stickers/ en voeg de naam hier toe.
-const stickers: Record<string, string> = {
-  Ibe: "ibe.png",
-  Tjorven: "tjorven.png",
-  Senne: "senne.png",
-};
-const sticker = stickers[name];
+// Foto per teamlid: public/team/<naam>.jpg (Ibe, Tjorven, Senne).
+const photo = ["Ibe", "Tjorven", "Senne"].includes(name)
+  ? `${import.meta.env.BASE_URL}team/${name.toLowerCase()}.jpg`
+  : null;
 ---
 
 <span class="not-prose inline-flex items-center gap-2 align-middle">
+  {photo && <img src={photo} alt="" class="avatar" width="28" height="28" />}
   {name}
-  {
-    sticker && (
-      <img
-        src={`${import.meta.env.BASE_URL}stickers/${sticker}`}
-        alt=""
-        class="sticker"
-        width="313"
-        height="360"
-      />
-    )
-  }
 </span>
 
 <style>
-  .sticker {
-    @apply h-12 w-auto;
+  .avatar {
+    @apply h-7 w-7 rounded-full object-cover;
   }
 </style>

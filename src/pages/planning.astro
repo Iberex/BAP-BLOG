@@ -3,421 +3,1302 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import { SITE } from "@config";
-import { bapWeek, weekRange } from "@utils/pijlers";
+import { Icon } from "astro-icon/components";
+import lucide from "@iconify-json/lucide/icons.json";
 
-type Item = {
-  id: string;
-  t: string;
-  type: string;
-  ond: string;
-  start: string;
-  end?: string;
-  status: string;
-  wie?: string;
+// Lucide icons per kind of work, handed to the script below.
+const ICON_NAMES: Record<string, string> = {
+  Development: "code-xml",
+  Design: "palette",
+  UX: "layout-template",
+  Algemeen: "pin",
+  Deadline: "flag",
+  Overleg: "message-circle",
+  pencil: "pencil",
+  check: "check",
 };
-
-const SOURCE =
-  "https://raw.githubusercontent.com/senne-debacker/BAP-PLANNING/main/tasks.json";
-
-let items: Item[] = [];
-let failed = false;
-try {
-  const response = await fetch(SOURCE);
-  items = ((await response.json()) as Item[]).filter(i => i.t && i.start);
-} catch {
-  failed = true;
-}
-
-// The columns of a day, like the pillars. Every "onderdeel" of the planning goes in one of them.
-const COLUMNS = [
-  { key: "design", label: "Design", ond: ["Design"] },
-  { key: "ux", label: "UX", ond: ["Experience Design", "Testen"] },
-  { key: "dev", label: "Development", ond: ["Development", "Bouw"] },
-  { key: "algemeen", label: "Communicatie", ond: ["Communicatie", ""] },
-];
-const column = (ond: string) =>
-  COLUMNS.find(c => c.ond.includes(ond)) ?? COLUMNS[3];
-
-const DAY = 24 * 60 * 60 * 1000;
-const noon = (iso: string) => new Date(`${iso}T12:00:00Z`);
-const iso = (date: Date) => date.toISOString().slice(0, 10);
-const format = (date: string, options: Intl.DateTimeFormatOptions) =>
-  noon(date).toLocaleDateString("nl-BE", { timeZone: "UTC", ...options });
-const done = (item: Item) => /done/i.test(item.status);
-const busy = (item: Item) => /in works/i.test(item.status);
-const people = (item: Item) =>
-  (item.wie ?? "")
-    .split(/[,&]| en /)
-    .map(name => name.trim())
-    .filter(Boolean);
-
-// A task is shown on its first day, and again on the Monday of every next week it still runs.
-const days = new Map<string, Item[]>();
-const add = (date: string, item: Item) =>
-  days.set(date, [...(days.get(date) ?? []), item]);
-for (const item of items) {
-  add(item.start, item);
-  if (item.type !== "Taak" || !item.end) continue;
-  for (
-    let t = noon(item.start).getTime() + DAY;
-    t <= noon(item.end).getTime();
-    t += DAY
-  ) {
-    if (new Date(t).getUTCDay() === 1) add(iso(new Date(t)), item);
-  }
-}
-
-const today = iso(new Date());
-const thisWeek = bapWeek(noon(today));
-if (!days.has(today)) days.set(today, []);
-
-const weeks = new Map<number, string[]>();
-for (const date of [...days.keys()].sort()) {
-  const week = bapWeek(noon(date));
-  weeks.set(week, [...(weeks.get(week) ?? []), date]);
-}
-const plan = [...weeks].map(([week, dates]) => ({
-  week,
-  past: week < thisWeek,
-  days: dates.map(date => {
-    const list = days.get(date)!;
-    const tasks = list.filter(i => i.type === "Taak");
-    return {
-      date,
-      today: date === today,
-      moments: list.filter(i => i.type !== "Taak"),
-      columns: COLUMNS.map((c, index) => ({
-        ...c,
-        place: index + 1,
-        tasks: tasks.filter(t => column(t.ond).key === c.key),
-      })).filter(c => c.tasks.length > 0),
-    };
-  }),
-}));
+const iconBodies = Object.fromEntries(
+  Object.entries(ICON_NAMES).map(([key, name]) => [
+    key,
+    lucide.icons[name as keyof typeof lucide.icons].body,
+  ])
+);
 ---
 
 <Layout title={`Planning | ${SITE.title}`}>
   <Header activeNav="planning" />
-  <main id="main-content" class="page">
-    <div class="page-head">
-      <h2 class="page-title">Planning</h2>
-      <a
-        href="https://senne-debacker.github.io/BAP-PLANNING/"
-        target="_blank"
-        rel="noopener"
-        class="quiet-link">+ planning bewerken</a
-      >
+  <main id="main-content" class="page planner">
+    <h2 class="page-title">Planning</h2>
+    <div hidden data-icons={JSON.stringify(iconBodies)}></div>
+
+    <!-- One bar: other weeks on the left, view and editing on the right. -->
+    <div class="planner-bar">
+      <div class="weeks-nav" data-weeks-nav>
+        <button
+          type="button"
+          class="arrow"
+          data-step="-7"
+          aria-label="Vorige week">‹</button
+        >
+        <button
+          type="button"
+          class="range"
+          data-range
+          title="Terug naar deze week"></button>
+        <button
+          type="button"
+          class="arrow"
+          data-step="7"
+          aria-label="Volgende week">›</button
+        >
+      </div>
+      <div class="planner-bar__right">
+        <div class="switch" role="group" aria-label="Zoom" data-zoom-switch>
+          <button type="button" data-zoom="7">1 week</button>
+          <button type="button" data-zoom="21">3 weken</button>
+        </div>
+        <div class="switch" role="group" aria-label="Weergave">
+          <button type="button" data-view="tijdlijn">Tijdlijn</button>
+          <button type="button" data-view="lijst">Lijst</button>
+        </div>
+        <button type="button" class="btn" data-new hidden>+ Taak</button>
+        <button type="button" class="btn" data-edit
+          ><Icon name="lucide:pencil" /> Bewerken</button
+        >
+      </div>
     </div>
 
-    {
-      failed ? (
-        <p class="empty">De planning kon niet geladen worden.</p>
-      ) : (
-        <>
-          <ul class="legend" aria-label="Kolommen">
-            {COLUMNS.map(c => (
-              <li class={`pill pill-${c.key}`}>{c.label}</li>
-            ))}
-          </ul>
+    <!-- Personal code: only the team can change the planning. -->
+    <form class="panel" data-code-form hidden>
+      <label class="field">
+        Jouw code
+        <input type="password" name="code" autocomplete="off" required />
+      </label>
+      <button type="submit" class="btn btn--primary">OK</button>
+      <span class="error" data-code-error></span>
+    </form>
 
-          {plan.map(({ week, past, days }) => (
-            <details class="week" open={!past}>
-              <summary>
-                <span class="week__title">Week {week}</span>
-                <span class="week__range">{weekRange(week)}</span>
-              </summary>
+    <!-- New task. -->
+    <form class="panel" data-add hidden>
+      <div class="panel__line">
+        <input
+          class="grow"
+          name="taak"
+          placeholder="Wat moet er gebeuren?"
+          required
+        />
+        <span class="who">
+          <label><input type="checkbox" name="wie" value="Senne" /> Senne</label
+          >
+          <label
+            ><input type="checkbox" name="wie" value="Tjorven" /> Tjorven</label
+          >
+          <label><input type="checkbox" name="wie" value="Ibe" /> Ibe</label>
+        </span>
+      </div>
+      <div class="panel__line">
+        <span class="dates">
+          <input type="date" name="van" required aria-label="Van" />
+          –
+          <input type="date" name="tot" aria-label="Tot" />
+        </span>
+        <select name="pijler" aria-label="Pijler">
+          <option>Development</option>
+          <option>Design</option>
+          <option>UX</option>
+          <option>Algemeen</option>
+        </select>
+        <select name="soort" aria-label="Soort">
+          <option>Taak</option>
+          <option>Overleg</option>
+          <option>Deadline</option>
+        </select>
+        <span class="grow"></span>
+        <button type="button" class="quiet-link" data-add-cancel
+          >annuleren</button
+        >
+        <button type="submit" class="btn btn--primary">Toevoegen</button>
+      </div>
+    </form>
 
-              <div class="days">
-                {days.map(day => (
-                  <article class:list={["day", { "day--today": day.today }]}>
-                    <p class="day__date">
-                      <span>{format(day.date, { weekday: "short" })}</span>
-                      <strong>{format(day.date, { day: "numeric" })}</strong>
-                      <span>{format(day.date, { month: "short" })}</span>
-                    </p>
+    <p class="planner-status" data-status>Laden…</p>
+    <div class="planner-card" data-timeline></div>
+    <div data-list></div>
 
-                    <div class="day__body">
-                      {day.today && <span class="today">vandaag</span>}
-                      {day.moments.map(item => (
-                        <p class="moment">
-                          <span class="moment__type">{item.type}</span>
-                          <strong>{item.t}</strong>
-                        </p>
-                      ))}
-                      {day.columns.length > 0 && (
-                        <div class="columns">
-                          {day.columns.map(c => (
-                            <div
-                              class={`column pill-${c.key}`}
-                              style={`--place: ${c.place}`}
-                            >
-                              <h3>{c.label}</h3>
-                              <ul>
-                                {c.tasks.map(task => (
-                                  <li
-                                    class:list={[
-                                      "task",
-                                      { "task--done": done(task) },
-                                    ]}
-                                  >
-                                    <span
-                                      class:list={[
-                                        "check",
-                                        { "check--busy": busy(task) },
-                                      ]}
-                                      aria-label={
-                                        done(task)
-                                          ? "Klaar"
-                                          : busy(task)
-                                            ? "Bezig"
-                                            : "Te doen"
-                                      }
-                                    />
-                                    <span class="task__text">
-                                      {task.t}
-                                      {task.end && task.end !== task.start && (
-                                        <span class="task__until">
-                                          t/m{" "}
-                                          {format(task.end, {
-                                            day: "numeric",
-                                            month: "short",
-                                          })}
-                                        </span>
-                                      )}
-                                      {people(task).length > 0 && (
-                                        <span class="task__people">
-                                          {people(task).map(name => (
-                                            <span class="person">{name}</span>
-                                          ))}
-                                        </span>
-                                      )}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {day.moments.length === 0 && day.columns.length === 0 && (
-                        <p class="empty">Niets gepland.</p>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </details>
-          ))}
-        </>
-      )
-    }
+    <div class="legends">
+      <ul class="legend" aria-label="Status">
+        <li class="legend-title">Status</li>
+        <li><span class="swatch status-todo"></span>Te doen</li>
+        <li><span class="swatch status-busy"></span>Bezig</li>
+        <li><span class="swatch status-done"></span>Klaar</li>
+      </ul>
+      <ul class="legend" aria-label="Soort">
+        <li class="legend-title">Soort</li>
+        <li><Icon name="lucide:code-xml" />Development</li>
+        <li><Icon name="lucide:palette" />Design</li>
+        <li><Icon name="lucide:layout-template" />UX</li>
+        <li><Icon name="lucide:pin" />Algemeen</li>
+        <li><Icon name="lucide:flag" />Deadline</li>
+        <li><Icon name="lucide:message-circle" />Overleg</li>
+      </ul>
+    </div>
   </main>
   <Footer />
 </Layout>
 
-<style>
-  .empty {
+<script>
+  import { createClient } from "@supabase/supabase-js";
+  import { SUPABASE } from "@config";
+  import { bapWeek, weekRange } from "@utils/pijlers";
+
+  type Item = {
+    id: string;
+    taak: string;
+    soort: string;
+    pijler: string;
+    wie: string[];
+    van: string;
+    tot: string;
+    status: string;
+    notitie: string;
+  };
+
+  const db = createClient(SUPABASE.url, SUPABASE.key);
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const timelineEl = $("[data-timeline]");
+  const listEl = $("[data-list]");
+  const statusEl = $("[data-status]");
+  const rangeEl = $<HTMLButtonElement>("[data-range]");
+  const codeForm = $<HTMLFormElement>("[data-code-form]");
+  const addForm = $<HTMLFormElement>("[data-add]");
+  const editButton = $<HTMLButtonElement>("[data-edit]");
+  const newButton = $<HTMLButtonElement>("[data-new]");
+
+  const PEOPLE = ["Senne", "Tjorven", "Ibe"];
+  // Emoji instead of colours: what kind of work it is.
+  const ICONS: Record<string, string> = JSON.parse(
+    $("[data-icons]").dataset.icons ?? "{}"
+  );
+  const kindOf = (item: Item) =>
+    item.soort === "Deadline"
+      ? "Deadline"
+      : item.soort === "Overleg"
+        ? "Overleg"
+        : item.pijler;
+  const svg = (kind: string) =>
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[kind] ?? ICONS.Algemeen}</svg>`;
+  const icon = (kind: string) => {
+    const node = document.createElement("span");
+    node.className = "ico";
+    node.innerHTML = svg(kind);
+    return node;
+  };
+  // Status as a pattern: empty = to do, stripes = busy, filled = done.
+  const statusClass = (status: string) =>
+    status === "Klaar"
+      ? "status-done"
+      : status === "Bezig"
+        ? "status-busy"
+        : "status-todo";
+  const DAY = 24 * 60 * 60 * 1000;
+  // Zoom: 7 days (wide, every title fits) or 21 days (three weeks).
+  let DAYS = 21;
+
+  // ---- small helpers
+  const store = {
+    get: (key: string) => {
+      try {
+        return localStorage.getItem(key) ?? "";
+      } catch {
+        return "";
+      }
+    },
+    set: (key: string, value: string) => {
+      try {
+        value ? localStorage.setItem(key, value) : localStorage.removeItem(key);
+      } catch {}
+    },
+  };
+  function store_zoom() {
+    return store.get("planning-zoom") === "7" ? 7 : 21;
+  }
+  const el = (tag: string, cls = "", text = "") => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  };
+  const button = (cls: string, text: string, onClick: () => void) => {
+    const node = el("button", cls, text) as HTMLButtonElement;
+    node.type = "button";
+    node.addEventListener("click", onClick);
+    return node;
+  };
+  const noon = (iso: string) => new Date(`${iso}T12:00:00Z`);
+  const iso = (time: number) => new Date(time).toISOString().slice(0, 10);
+  const short = (date: string, options: Intl.DateTimeFormatOptions = {}) =>
+    noon(date).toLocaleDateString("nl-BE", {
+      timeZone: "UTC",
+      day: "numeric",
+      month: "short",
+      ...options,
+    });
+  const today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const mondayOf = (date: string) =>
+    noon(date).getTime() - ((noon(date).getUTCDay() + 6) % 7) * DAY;
+  // A task for all three (or for nobody in particular) goes in the row "Iedereen".
+  const forAll = (item: Item) => item.wie.length === 0 || item.wie.length === 3;
+
+  // ---- state
+  let items: Item[] = [];
+  let code = store.get("planning-code");
+  let editing = false;
+  let changing: string | null = null;
+  let view = store.get("planning-view") === "lijst" ? "lijst" : "tijdlijn";
+  let start = mondayOf(today);
+  DAYS = store_zoom();
+
+  // ---- data
+  async function load() {
+    const { data, error } = await db.from("planning").select("*").order("van");
+    if (error) {
+      statusEl.hidden = false;
+      statusEl.textContent = "De planning kon niet geladen worden.";
+      return;
+    }
+    items = data as Item[];
+    render();
+  }
+
+  function failed(message: string) {
+    if (/code klopt niet/.test(message)) {
+      store.set("planning-code", "");
+      code = "";
+      setEditing(false);
+      codeForm.hidden = false;
+      $("[data-code-error]").textContent = "Code klopt niet.";
+    } else {
+      statusEl.hidden = false;
+      statusEl.textContent = `Niet bewaard: ${message}`;
+    }
+  }
+
+  async function save(rij: Partial<Item>) {
+    const { error } = await db.rpc("planning_bewaar", { code, rij });
+    if (error) return failed(error.message);
+    await load();
+  }
+
+  async function removeItem(id: string) {
+    const { error } = await db.rpc("planning_verwijder", { code, id });
+    if (error) return failed(error.message);
+    await load();
+  }
+
+  // ---- editing one task (under its row, in both views)
+  const field = (type: string, value: string, cls = "") => {
+    const input = document.createElement("input");
+    input.type = type;
+    input.value = value;
+    if (cls) input.className = cls;
+    return input;
+  };
+  const choice = (options: string[], value: string, label: string) => {
+    const select = document.createElement("select");
+    select.setAttribute("aria-label", label);
+    for (const option of options)
+      select.append(new Option(option, option, false, option === value));
+    return select;
+  };
+
+  function editor(item: Item) {
+    const box = el("div", "panel panel--inline");
+    const taak = field("text", item.taak, "grow");
+    const who = el("span", "who");
+    const boxes = PEOPLE.map(name => {
+      const label = el("label");
+      const check = field("checkbox", name);
+      check.checked = item.wie.includes(name);
+      label.append(check, ` ${name}`);
+      who.append(label);
+      return check;
+    });
+    const van = field("date", item.van);
+    const tot = field("date", item.tot);
+    const dates = el("span", "dates");
+    dates.append(van, " – ", tot);
+    const status = choice(["Te doen", "Bezig", "Klaar"], item.status, "Status");
+
+    const pijler = choice(
+      ["Development", "Design", "UX", "Algemeen"],
+      item.pijler,
+      "Pijler"
+    );
+    const soort = choice(["Taak", "Overleg", "Deadline"], item.soort, "Soort");
+    const notitie = field("text", item.notitie, "grow");
+    notitie.placeholder = "Notitie";
+    const more = el("details", "more");
+    const moreBody = el("div", "panel__line");
+    moreBody.append(
+      pijler,
+      soort,
+      notitie,
+      button("quiet-link danger", "taak verwijderen", () => {
+        changing = null;
+        removeItem(item.id);
+      })
+    );
+    more.append(el("summary", "", "meer"), moreBody);
+
+    const line1 = el("div", "panel__line");
+    line1.append(taak, who);
+    const line2 = el("div", "panel__line");
+    line2.append(
+      dates,
+      status,
+      more,
+      button("quiet-link", "annuleren", () => {
+        changing = null;
+        render();
+      }),
+      button("btn btn--primary", "Bewaren", () => {
+        changing = null;
+        save({
+          id: item.id,
+          taak: taak.value.trim() || item.taak,
+          wie: boxes.filter(c => c.checked).map(c => c.value),
+          van: van.value || item.van,
+          tot: tot.value || van.value || item.tot,
+          status: status.value,
+          pijler: pijler.value,
+          soort: soort.value,
+          notitie: notitie.value.trim(),
+        });
+      })
+    );
+    box.append(line1, line2);
+    setTimeout(() => taak.focus());
+    return box;
+  }
+
+  // Clicking a task: ask for the code first if needed, then open it.
+  function open(item: Item) {
+    if (!code) {
+      codeForm.hidden = false;
+      return;
+    }
+    if (!editing) setEditing(true);
+    changing = item.id;
+    render();
+  }
+
+  // ---- views
+  function render() {
+    const timeline = view === "tijdlijn";
+    timelineEl.hidden = !timeline;
+    listEl.hidden = timeline;
+    $("[data-weeks-nav]").style.visibility = timeline ? "visible" : "hidden";
+    $("[data-zoom-switch]").style.visibility = timeline ? "visible" : "hidden";
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-zoom]")
+      .forEach(b =>
+        b.setAttribute("aria-pressed", String(Number(b.dataset.zoom) === DAYS))
+      );
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-view]")
+      .forEach(b =>
+        b.setAttribute("aria-pressed", String(b.dataset.view === view))
+      );
+    statusEl.hidden = true;
+    if (timeline) renderTimeline();
+    else renderList();
+  }
+
+  // ---- popover for short bars (shown instantly, no native tooltip)
+  let pop: HTMLDivElement | null = null;
+  let popFor: HTMLElement | null = null;
+  function hidePop() {
+    if (pop) pop.hidden = true;
+    popFor?.classList.remove("tl-bar--hover");
+    popFor = null;
+  }
+  function showPop(bar: HTMLElement, item: Item) {
+    if (!pop) {
+      pop = document.createElement("div");
+      pop.className = "tl-pop";
+      pop.setAttribute("role", "tooltip");
+      document.body.append(pop);
+      // Touch: tap elsewhere closes it.
+      document.addEventListener("pointerdown", e => {
+        if (popFor && !popFor.contains(e.target as Node)) hidePop();
+      });
+    }
+    const kind = kindOf(item);
+    const row = (...parts: (Node | string)[]) => {
+      const r = el("div", "tl-pop-row");
+      r.append(...parts);
+      return r;
+    };
+    const status = el("span", `swatch ${statusClass(item.status)}`);
+    pop.replaceChildren(
+      row(icon(kind), el("strong", "", item.taak)),
+      el(
+        "div",
+        "tl-pop-meta",
+        `${short(item.van)}${item.tot !== item.van ? ` – ${short(item.tot)}` : ""}`
+      ),
+      row(
+        el("span", "tl-pop-key", "Soort"),
+        item.soort === "Taak" ? item.pijler : item.soort
+      ),
+      row(el("span", "tl-pop-key", "Status"), status, item.status),
+      ...(item.notitie ? [el("div", "tl-pop-note", item.notitie)] : [])
+    );
+    pop.hidden = false;
+    popFor?.classList.remove("tl-bar--hover");
+    popFor = bar;
+    bar.classList.add("tl-bar--hover");
+    // Above the bar, clamped to the viewport; below when there is no room.
+    const r = bar.getBoundingClientRect();
+    const w = pop.offsetWidth;
+    const h = pop.offsetHeight;
+    const left = Math.min(
+      Math.max(8, r.left + r.width / 2 - w / 2),
+      window.innerWidth - w - 8
+    );
+    const above =
+      r.bottom + h + 10 > window.innerHeight - 8 && r.top - h - 10 >= 8;
+    const top = above ? r.top - h - 10 : r.bottom + 10;
+    pop.dataset.side = above ? "above" : "below";
+    pop.style.setProperty("--arrow", `${r.left + r.width / 2 - left}px`);
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+  }
+
+  function renderTimeline() {
+    hidePop();
+    const days = Array.from({ length: DAYS }, (_, i) => iso(start + i * DAY));
+    const first = days[0];
+    const last = days[DAYS - 1];
+    const col = (date: string) =>
+      Math.round((noon(date).getTime() - noon(first).getTime()) / DAY);
+    rangeEl.textContent =
+      DAYS === 7
+        ? `Week ${bapWeek(noon(first))}`
+        : `Week ${bapWeek(noon(first))} – ${bapWeek(noon(last))}`;
+    // Width of one day in pixels, to know how many days a label needs.
+    const dayWidth = Math.max(36, (timelineEl.clientWidth - 144) / DAYS);
+    // Rough width of a title in pixels (0.8rem bold).
+    const textWidth = (item: Item) => item.taak.length * 6.6 + 44;
+
+    const grid = el("div", "tl");
+    grid.style.setProperty("--days", String(DAYS));
+
+    // Header: a week band on top (spans its days), then letter + number per day.
+    const corner = el("div", "tl-corner");
+    corner.style.gridRow = "2";
+    corner.style.gridColumn = "1";
+    const cornerTop = el("div", "tl-corner-top");
+    cornerTop.style.gridRow = "1";
+    cornerTop.style.gridColumn = "1";
+    grid.append(cornerTop, corner);
+    let weekStart = 0;
+    days.forEach((date, i) => {
+      const d = noon(date);
+      const wk = bapWeek(d);
+      const nextWk = i + 1 < DAYS ? bapWeek(noon(days[i + 1])) : -1;
+      if (wk !== nextWk) {
+        const band = el("div", "tl-weekband", `Week ${wk}`);
+        band.style.gridRow = "1";
+        band.style.gridColumn = `${weekStart + 2} / ${i + 3}`;
+        grid.append(band);
+        weekStart = i + 1;
+      }
+      const cell = el("div", "tl-day");
+      cell.style.gridRow = "2";
+      cell.style.gridColumn = String(i + 2);
+      if (d.getUTCDay() === 1) cell.classList.add("tl-monday");
+      if (d.getUTCDay() === 0 || d.getUTCDay() === 6)
+        cell.classList.add("tl-weekend");
+      if (date === today) cell.classList.add("tl-today");
+      cell.append(
+        el(
+          "span",
+          "tl-letter",
+          d.toLocaleDateString("nl-BE", { timeZone: "UTC", weekday: "narrow" })
+        ),
+        el("strong", "", String(d.getUTCDate()))
+      );
+      grid.append(cell);
+    });
+
+    for (const person of [...PEOPLE, "Iedereen"]) {
+      const tasks = items
+        .filter(item => item.van <= last && item.tot >= first)
+        .filter(item =>
+          person === "Iedereen"
+            ? forAll(item)
+            : !forAll(item) && item.wie.includes(person)
+        )
+        .sort((a, b) => a.van.localeCompare(b.van));
+
+      // Overlapping tasks go on separate lines.
+      const lanes: number[] = [];
+      const placed = tasks.map(item => {
+        const from = Math.max(0, col(item.van));
+        const to = Math.min(DAYS - 1, col(item.tot));
+        let lane = lanes.findIndex(taken => taken < from);
+        if (lane === -1) lane = lanes.length;
+        lanes[lane] = to;
+        return { item, lane, from, to };
+      });
+
+      const name = el("div", "tl-name");
+      if (person === "Iedereen") {
+        name.append(el("span", "tl-group", ""));
+      } else {
+        const photo = document.createElement("img");
+        photo.src = `${import.meta.env.BASE_URL}team/${person.toLowerCase()}.jpg`;
+        photo.alt = "";
+        name.append(photo);
+      }
+      name.append(el("span", "", person));
+
+      const row = el("div", "tl-row");
+      row.style.gridTemplateRows = `repeat(${Math.max(1, lanes.length)}, var(--lane))`;
+      days.forEach((date, i) => {
+        const d = noon(date);
+        const bg = el("div", "tl-bg");
+        bg.style.gridColumn = String(i + 1);
+        if (d.getUTCDay() === 1) bg.classList.add("tl-monday");
+        if (d.getUTCDay() === 0 || d.getUTCDay() === 6)
+          bg.classList.add("tl-weekend");
+        if (date === today) bg.classList.add("tl-today");
+        row.append(bg);
+      });
+
+      for (const { item, lane, from, to } of placed) {
+        // Every task is a bar as long as the task really is, with the name inside.
+        // Too narrow for the name: only the icon (zoom to "1 week" to read all names).
+        const width = (to - from + 1) * dayWidth - 4;
+        const narrow = width < 110 && width < textWidth(item);
+        let touch = false;
+        const bar = button(
+          `tl-bar ${statusClass(item.status)}` +
+            (item.soort === "Deadline" ? " tl-bar--deadline" : "") +
+            (narrow ? " tl-bar--icon" : "") +
+            (item.id === changing ? " tl-bar--open" : ""),
+          "",
+          () => {
+            // Touch: first tap shows the title, second tap opens the task.
+            if (touch && popFor !== bar) {
+              showPop(bar, item);
+              return;
+            }
+            hidePop();
+            open(item);
+          }
+        );
+        bar.append(icon(kindOf(item)));
+        if (!narrow) bar.append(el("span", "tl-text", item.taak));
+        bar.style.gridColumn = `${from + 1} / ${to + 2}`;
+        bar.style.gridRow = String(lane + 1);
+        const details = [
+          item.taak,
+          `${short(item.van)}${item.tot !== item.van ? ` – ${short(item.tot)}` : ""}`,
+          `${item.soort === "Taak" ? item.pijler : item.soort} · ${item.status}`,
+          item.notitie,
+        ].filter(Boolean);
+        {
+          // Every bar: own instant popover, no native tooltip.
+          bar.setAttribute("aria-label", details.join(", "));
+          bar.addEventListener(
+            "pointerdown",
+            e => (touch = e.pointerType === "touch")
+          );
+          bar.addEventListener("pointerenter", e => {
+            if (e.pointerType !== "touch") showPop(bar, item);
+          });
+          bar.addEventListener("pointerleave", e => {
+            if (e.pointerType !== "touch") hidePop();
+          });
+          bar.addEventListener("focus", () => showPop(bar, item));
+          bar.addEventListener("blur", hidePop);
+        }
+        row.append(bar);
+      }
+      grid.append(name, row);
+
+      const chosen = placed.find(({ item }) => item.id === changing);
+      if (editing && chosen) {
+        const panel = editor(chosen.item);
+        panel.classList.add("tl-editor");
+        grid.append(panel);
+      }
+    }
+    timelineEl.replaceChildren(grid);
+  }
+
+  function renderList() {
+    const weeks = new Map<number, Item[]>();
+    for (const item of items) {
+      const week = bapWeek(noon(item.van));
+      weeks.set(week, [...(weeks.get(week) ?? []), item]);
+    }
+    const thisWeek = bapWeek(noon(today));
+    const sections = [...weeks]
+      .sort(([a], [b]) => a - b)
+      .map(([week, list]) => {
+        const details = el("details", "list-week") as HTMLDetailsElement;
+        details.open = week >= thisWeek || list.some(i => i.id === changing);
+        // One clear row per week: arrow (› closed, ⌄ open), week, dates, number of tasks.
+        const summary = el("summary");
+        summary.append(
+          el("span", "list-arrow", ""),
+          el("strong", "", `Week ${week}`),
+          el("span", "muted", weekRange(week)),
+          week === thisWeek ? el("span", "now", "deze week") : "",
+          el(
+            "span",
+            "list-count",
+            `${list.length} ${list.length === 1 ? "taak" : "taken"}`
+          )
+        );
+        const card = el("div", "planner-card");
+        for (const item of list.sort((a, b) => a.van.localeCompare(b.van))) {
+          const row = el(
+            "div",
+            `list-row${item.status === "Klaar" ? " done" : ""}`
+          );
+          const what = el("span", "list-what");
+          what.append(icon(kindOf(item)), item.taak);
+          row.append(
+            el(
+              "span",
+              "muted",
+              `${short(item.van, { weekday: "short" })}${item.tot !== item.van ? ` – ${short(item.tot)}` : ""}`
+            ),
+            what,
+            el(
+              "span",
+              "muted",
+              forAll(item) ? "Iedereen" : item.wie.join(", ")
+            ),
+            (() => {
+              const cell = el("span", "list-status");
+              cell.append(
+                el("span", `swatch ${statusClass(item.status)}`),
+                item.status
+              );
+              return cell;
+            })()
+          );
+          row.addEventListener("click", () => open(item));
+          card.append(row);
+          if (editing && item.id === changing) card.append(editor(item));
+        }
+        details.append(summary, card);
+        return details;
+      });
+    listEl.replaceChildren(...sections);
+  }
+
+  // ---- controls
+  function setEditing(on: boolean) {
+    editing = on;
+    if (!on) changing = null;
+    addForm.hidden = true;
+    newButton.hidden = !on;
+    editButton.replaceChildren(
+      icon(on ? "check" : "pencil"),
+      on ? " Klaar" : " Bewerken"
+    );
+    editButton.classList.toggle("btn--primary", on);
+    render();
+  }
+
+  editButton.addEventListener("click", () => {
+    if (editing) return setEditing(false);
+    if (code) return setEditing(true);
+    codeForm.hidden = !codeForm.hidden;
+  });
+
+  codeForm.addEventListener("submit", event => {
+    event.preventDefault();
+    code = String(new FormData(codeForm).get("code") ?? "");
+    store.set("planning-code", code);
+    codeForm.hidden = true;
+    $("[data-code-error]").textContent = "";
+    setEditing(true);
+  });
+
+  newButton.addEventListener("click", () => {
+    addForm.hidden = false;
+    (addForm.elements.namedItem("taak") as HTMLInputElement).focus();
+  });
+  $("[data-add-cancel]").addEventListener("click", () => {
+    addForm.reset();
+    addForm.hidden = true;
+  });
+  addForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = new FormData(addForm);
+    const van = String(form.get("van"));
+    await save({
+      taak: String(form.get("taak")),
+      wie: form.getAll("wie").map(String),
+      van,
+      tot: String(form.get("tot") || van),
+      pijler: String(form.get("pijler")),
+      soort: String(form.get("soort")),
+    });
+    addForm.reset();
+    addForm.hidden = true;
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-view]").forEach(b =>
+    b.addEventListener("click", () => {
+      view = b.dataset.view === "lijst" ? "lijst" : "tijdlijn";
+      store.set("planning-view", view);
+      render();
+    })
+  );
+  document.querySelectorAll<HTMLButtonElement>("[data-step]").forEach(b =>
+    b.addEventListener("click", () => {
+      start += Number(b.dataset.step) * DAY;
+      render();
+    })
+  );
+  document.querySelectorAll<HTMLButtonElement>("[data-zoom]").forEach(b =>
+    b.addEventListener("click", () => {
+      DAYS = Number(b.dataset.zoom) === 7 ? 7 : 21;
+      store.set("planning-zoom", String(DAYS));
+      render();
+    })
+  );
+  rangeEl.addEventListener("click", () => {
+    start = mondayOf(today);
+    render();
+  });
+
+  // Live: a change by a teammate shows up straight away.
+  db.channel("planning")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "planning" },
+      load
+    )
+    .subscribe();
+
+  load();
+</script>
+
+<style is:global>
+  .switch {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background-color: var(--card);
+    font-size: var(--fs-sm);
+  }
+  .switch button {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    color: var(--muted);
+  }
+  .switch button[aria-pressed="true"] {
+    background-color: var(--ink);
+    color: var(--card);
+  }
+  .planner-status {
     color: var(--muted);
     font-size: var(--fs-sm);
+  }
+  .planner-status[hidden],
+  .planner-card[hidden],
+  [data-list][hidden] {
+    display: none;
+  }
+
+  /* Key hangs straight under the planning card, in a softer tint. */
+  .planner-card {
+    padding-bottom: 0.5rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .legends {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 2.5rem;
+    margin-top: 0;
+    padding: 0.85rem 1.25rem;
+    border: 1px solid var(--line);
+    border-top: 0;
+    border-radius: 0 0 16px 16px;
+    background-color: #ece8de;
+  }
+  .legend-title {
+    color: var(--ink);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* Two clearly separate groups: a vertical line between Status and Soort. */
+  .legend + .legend {
+    padding-left: 2.5rem;
+    border-left: 1px solid rgba(35, 35, 35, 0.2);
   }
   .legend {
     display: flex;
     flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: default;
+    user-select: none;
+  }
+  .legend li {
+    display: inline-flex;
+    align-items: center;
     gap: 0.4rem;
-    margin-bottom: var(--space-m);
   }
-  .week {
-    margin-bottom: 0.5rem;
+  .legend .swatch {
+    margin-right: 0;
   }
-  .week[open] {
-    margin-bottom: var(--space-m);
+  .legend svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex-shrink: 0;
   }
-  .week summary {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    cursor: pointer;
-    list-style: none;
-  }
-  .week summary::-webkit-details-marker {
-    display: none;
-  }
-  .week summary::before {
-    content: "▸";
-    color: var(--muted);
-  }
-  .week[open] summary::before {
-    content: "▾";
-  }
-  .week__title {
-    font-size: var(--fs-lg);
-    font-weight: 800;
-  }
-  .week__range {
-    font-size: var(--fs-sm);
-    color: var(--muted);
-  }
-  .days {
+
+  /* ---- panels: code, new task, change a task */
+  .panel {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-  }
-  .day {
-    display: grid;
-    grid-template-columns: 4rem 1fr;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
+    margin-bottom: var(--space-s);
+    padding: var(--space-xs);
     border: 1px solid var(--line);
+    border-radius: 16px;
+    background-color: var(--card);
+    font-size: var(--fs-sm);
+  }
+  .panel[hidden] {
+    display: none;
+  }
+  form.panel[data-code-form] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .panel--inline {
+    grid-column: 1 / -1;
+    margin: 0.5rem;
     border-radius: 12px;
+    background-color: var(--paper);
+  }
+  .panel__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+  }
+  .panel input:not([type="checkbox"]),
+  .panel select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
     background-color: var(--card);
   }
-  .day--today {
-    border: 2px solid var(--blue);
+  /* Own chevron with room around it, the browser one sits against the edge. */
+  .panel select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.1rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2377736b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.65rem center;
+    background-size: 1rem;
+    cursor: pointer;
   }
-  .day__date {
+  .panel .grow {
+    flex: 1 1 14rem;
+  }
+  .panel input.grow {
+    font-size: var(--fs-base);
+  }
+  .who,
+  .dates,
+  .field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .more {
+    flex: 1;
+    color: var(--muted);
+  }
+  .more summary {
+    cursor: pointer;
+  }
+  .more[open] summary {
+    margin-bottom: 0.6rem;
+  }
+  .danger,
+  .error {
+    color: #b42318;
+  }
+
+  /* ---- timeline */
+  .tl {
+    --lane: 3rem;
+    display: grid;
+    grid-template-columns: 9rem repeat(var(--days), minmax(2.4rem, 1fr));
+    min-width: 50rem;
+    font-size: var(--fs-sm);
+  }
+  .tl-day {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    padding: 0.3rem 0 0.5rem;
+    border-bottom: 1px solid var(--line);
+    line-height: 1.2;
+  }
+  .tl-letter {
+    font-size: 0.7rem;
     color: var(--muted);
   }
-  .day__date strong {
-    font-size: 1.75rem;
-    line-height: 1.1;
-    letter-spacing: 0;
+  .tl-day strong {
+    font-weight: 500;
+  }
+  /* Corner sits level with the days and gets the same line under it. */
+  .tl-corner {
+    border-bottom: 1px solid var(--line);
+  }
+  .tl-weekband {
+    padding: 0.5rem 0 0.1rem;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    border-left: 1px solid var(--line);
+  }
+  .tl-today strong {
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background-color: var(--today);
+  }
+  .tl-weekend {
+    background-color: rgba(35, 35, 35, 0.03);
+  }
+  .tl-monday {
+    border-left: 1px solid var(--line);
+  }
+  .tl-name {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--line);
+    font-weight: 600;
+  }
+  .tl-name img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  /* Three small dots: the whole team. */
+  .tl-group {
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background-color: var(--paper);
+  }
+  .tl-group::before {
+    content: "•••";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  .tl-row {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(var(--days), minmax(2.4rem, 1fr));
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .tl-bg {
+    grid-row: 1 / -1;
+    margin: -0.5rem 0;
+  }
+  .tl-bg.tl-today {
+    background-color: var(--today-bg);
+  }
+  .tl-bar {
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    margin: 0.3rem 2px;
+    padding: 0 0.6rem;
+    overflow: hidden;
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .tl-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ico {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .tl-bar {
+    cursor: pointer;
+  }
+  .tl-bar:hover {
+    filter: brightness(0.96);
+  }
+  /* Status: empty = to do, stripes = busy, filled grey = done. */
+  .status-todo {
+    border-color: var(--ink);
+    background-color: var(--card);
     color: var(--ink);
   }
-  .day--today .day__date strong {
-    color: var(--blue);
+  .status-busy {
+    border-color: var(--ink);
+    background-color: var(--card);
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(35, 35, 35, 0.16) 0 5px,
+      transparent 5px 10px
+    );
+    color: var(--ink);
   }
-  .day__body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
-    min-width: 0;
-  }
-  .today {
-    padding: 0.05rem 0.55rem;
-    border-radius: 999px;
-    background-color: var(--blue);
+  .status-done {
+    border-color: #98948a;
+    background-color: #98948a;
+    background-image: none;
     color: #fff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
   }
-  .moment {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-  .moment__type {
-    padding: 0.05rem 0.45rem;
-    border-radius: 6px;
-    background-color: var(--paper);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--muted);
-  }
-  /* Every pillar has its own place, so Design is always left and Communicatie right. */
-  .columns {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    width: 100%;
-  }
-  @media (min-width: 40.01rem) {
-    .column {
-      grid-column: var(--place);
-    }
-  }
-  .column {
-    padding-left: 0.75rem;
-    border-left: 3px solid rgb(var(--pill, var(--color-algemeen)));
-  }
-  .column h3 {
-    margin-bottom: 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-  .column ul {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .task {
-    display: flex;
-    gap: 0.5rem;
-    font-size: var(--fs-sm);
-    line-height: 1.4;
-  }
-  .check {
+  .swatch {
+    display: inline-block;
     flex-shrink: 0;
-    width: 0.9rem;
-    height: 0.9rem;
-    margin-top: 0.15rem;
-    border: 1.5px solid var(--muted);
-    border-radius: 4px;
+    width: 1.1rem;
+    height: 0.7rem;
+    margin-right: 0.4rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
   }
-  .check--busy {
-    border-color: var(--blue);
-    background: linear-gradient(90deg, var(--blue) 50%, transparent 50%);
+  .swatch.status-done {
+    border-color: #98948a;
   }
-  .task--done .check {
-    border-color: var(--muted);
-    background-color: var(--muted);
+  /* Deadlines stand out in red (unless done). */
+  .tl-bar--deadline:not(.status-done) {
+    border-color: #b42318;
+    background-color: #fde8e6;
+    color: #8a1a10;
   }
-  .task--done .task__text {
-    text-decoration: line-through;
-    color: var(--muted);
+  .tl-bar--icon {
+    justify-content: center;
+    padding: 0;
   }
-  .task__text {
+  .tl-pop {
+    position: fixed;
+    z-index: 50;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
+    gap: 0.15rem;
+    max-width: 18rem;
+    padding: 0.5rem 0.7rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(35, 35, 35, 0.18);
+    color: var(--ink);
+    font-size: 0.8rem;
+    pointer-events: none;
   }
-  .task__until {
-    font-size: 0.75rem;
+  .tl-pop::after {
+    content: "";
+    position: absolute;
+    left: var(--arrow);
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    background: #fff;
+    transform: rotate(45deg);
+  }
+  .tl-pop[data-side="above"]::after {
+    bottom: -6.5px;
+    border-right: 1.5px solid var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .tl-pop[data-side="below"]::after {
+    top: -6.5px;
+    border-left: 1.5px solid var(--ink);
+    border-top: 1.5px solid var(--ink);
+  }
+  .tl-bar--hover {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .tl-pop[hidden] {
+    display: none;
+  }
+  .tl-pop-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .tl-pop-row strong {
+    font-size: 0.9rem;
+  }
+  .tl-pop-key {
+    min-width: 3.2rem;
     color: var(--muted);
   }
-  .task__people {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
+  .tl-pop .swatch {
+    margin-right: 0;
   }
-  .person {
-    padding: 0 0.4rem;
+  .tl-pop-meta {
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .tl-pop-note {
+    margin-top: 0.3rem;
+    padding-top: 0.3rem;
+    border-top: 1px solid var(--line);
+  }
+  .tl-bar--open {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+
+  /* ---- list */
+  .list-week {
+    margin-bottom: 0.6rem;
+  }
+  .list-week summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background-color: var(--card);
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--fs-sm);
+  }
+  .list-week summary::-webkit-details-marker {
+    display: none;
+  }
+  .list-week summary:hover {
+    border-color: var(--ink);
+  }
+  .list-arrow {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid var(--line);
     border-radius: 999px;
-    background-color: var(--blue);
-    color: #fff;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+  .list-arrow::before {
+    content: "›";
+  }
+  .list-week[open] .list-arrow::before {
+    content: "⌄";
+    margin-top: -0.35rem;
+  }
+  .list-count {
+    margin-left: auto;
+    color: var(--muted);
+  }
+  /* Open: the header and the tasks form one card. */
+  .list-week[open] summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .list-week[open] .planner-card {
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .list-week .muted,
+  .list-row .muted {
+    color: var(--muted);
+  }
+  .list-week .now {
     font-weight: 600;
+  }
+  .list-row {
+    display: grid;
+    grid-template-columns: 10rem 1fr 9rem 6.5rem;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+  .list-row:last-child {
+    border-bottom: 0;
+  }
+  .list-row:hover {
+    background-color: var(--paper);
+  }
+  .list-row.done {
+    color: var(--muted);
+  }
+  .list-what {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .list-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: var(--muted);
   }
   @media (max-width: 40rem) {
-    .columns {
-      grid-template-columns: 1fr;
+    .list-row {
+      grid-template-columns: 1fr auto;
     }
-    .day {
-      grid-template-columns: 1fr;
-      gap: 0.5rem;
-    }
-    .day__date {
-      flex-direction: row;
-      gap: 0.4rem;
-      align-items: baseline;
-    }
-    .day__date strong {
-      font-size: 1.25rem;
+    .list-row > :first-child,
+    .list-row > :nth-child(3) {
+      grid-column: 1 / -1;
     }
   }
 </style>

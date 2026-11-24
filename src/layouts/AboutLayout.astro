@@ -17,12 +17,16 @@ const { frontmatter } = Astro.props;
 
 <Layout title={`${frontmatter.title} | ${SITE.title}`}>
   <Header activeNav={frontmatter.nav} />
-  <main id="main-content" class="mx-auto w-full max-w-4xl px-4 pb-12 pt-8">
-    <h1 class="mb-4 text-2xl font-semibold">{frontmatter.title}</h1>
+  <main id="main-content" class="page">
+    <h1 class="page-title">{frontmatter.title}</h1>
     <slot name="before" />
-    <section id="about" class="panel prose max-w-none prose-img:border-0">
-      <slot />
-    </section>
+    {
+      Astro.slots.has("default") && (
+        <section id="about" class="panel prose max-w-none prose-img:border-0">
+          <slot />
+        </section>
+      )
+    }
   </main>
   <Footer />
 </Layout>

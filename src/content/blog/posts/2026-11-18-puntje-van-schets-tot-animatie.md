@@ -24,18 +24,12 @@ inhoud:
   - _template: tekst
     tekst: >-
       Eerst verkende ik een paar richtingen: geel lijf, zwart bandje en een
-      roze gom. De meeste voorstellen waren te glad of te schattig. Senne gaf daar een goed punt
-      over:
-  - _template: citaat
-    citaat: >-
-      Tis leuk da die zo cute is ma kwou da meer voor de Krabbel houden,
-      Puntje is diegene die het kind helpt, dus ik zou die wel schattig, maar
-      ook wa meer volwassen maken.
-    wie: Senne
+      roze gom. De meeste voorstellen waren te glad of te schattig. Het
+      schattige figuurtje is de Krabbel van het kind. Puntje is eerder een
+      vriendelijke begeleider en mag dus wat volwassener ogen.
   - _template: tekst
     tekst: >-
-      Dat klopt: het schattige figuurtje is de Krabbel van het kind. Puntje is
-      eerder een vriendelijke begeleider. Daarom ben ik zelf gaan schetsen in
+      Daarom ben ik zelf gaan schetsen in
       Procreate. Op één blad tekende ik verschillende potloden naast elkaar en
       maakte ik keuzes:
 

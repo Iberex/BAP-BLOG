@@ -418,3 +418,4 @@ content:
         label: Pijler
         type: select
         options: { values: [ UX, DESIGN, DEV ] }
+      - { name: bio, label: "Wat doet die? (2-3 zinnen)", type: text }

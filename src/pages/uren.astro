@@ -6,98 +6,76 @@ import { SITE, SUPABASE } from "@config";
 import team from "../data/team.json";
 
 const ready = Boolean(SUPABASE.url && SUPABASE.key);
+const base = import.meta.env.BASE_URL;
 ---
 
 <Layout title={`Uren | ${SITE.title}`}>
   <Header activeNav="uren" />
-  <main id="main-content" class="page">
-    <div class="page-head">
-      <h2 class="page-title">Uren</h2>
-      <a
-        href="https://track.toggl.com/timer"
-        target="_blank"
-        rel="noopener"
-        class="quiet-link">Open Toggl</a
-      >
-    </div>
-
-    <p class="intro">
-      Iedereen houdt zijn uren bij in zijn eigen Toggl, in het project
-      <strong>BAP</strong>. Start je timer daar: hier zie je live wie aan het
-      werk is, en de uren per dag tellen vanzelf op.
-    </p>
+  <main id="main-content" class="page uren">
+    <h2 class="page-title">Uren</h2>
 
     {
       !ready ? (
-        <p class="empty">
-          De urenregistratie is nog niet gekoppeld aan Supabase. Zie de README.
-        </p>
+        <p class="uren-empty">De uren zijn nog niet gekoppeld.</p>
       ) : (
         <>
-          <p class="message" data-message hidden />
+          <p class="uren-empty" data-message hidden />
 
-          <section class="block">
-            <h3 class="block-title">Nu</h3>
-            <div class="people">
-              {team.map(({ naam }) => (
-                <div class="person" data-person={naam}>
-                  <div class="person__top">
-                    <span class="light" aria-hidden="true" />
-                    <strong>{naam}</strong>
-                    <span class="state" data-state>
-                      …
-                    </span>
-                  </div>
-                  <p class="clock" data-clock>
-                    0:00:00
-                  </p>
-                  <p class="today" data-today />
+          {/* Who is working right now. */}
+          <div class="people">
+            {team.map(({ naam }) => (
+              <div class="person" data-person={naam}>
+                <div class="person__head">
+                  <img src={`${base}team/${naam.toLowerCase()}.jpg`} alt="" />
+                  <strong>{naam}</strong>
+                  <span class="person__light" aria-hidden="true" />
                 </div>
-              ))}
-            </div>
-          </section>
+                <p class="person__clock" data-clock>
+                  –
+                </p>
+                <p class="person__line" data-state />
+              </div>
+            ))}
+          </div>
 
-          <section class="block">
-            <div class="week-switch">
+          {/* Hours per day this week: the darker, the longer. */}
+          <div class="planner-bar uren-bar">
+            <div class="weeks-nav">
               <button
                 type="button"
-                class="quiet-link"
+                class="arrow"
                 data-week="-1"
                 aria-label="Vorige week"
               >
-                ←
+                ‹
               </button>
-              <h3 class="block-title" data-week-title />
+              <span class="range" data-week-title />
               <button
                 type="button"
-                class="quiet-link"
+                class="arrow"
                 data-week="1"
                 aria-label="Volgende week"
               >
-                →
+                ›
               </button>
             </div>
-            <div class="table-wrap">
-              <table class="hours">
-                <thead>
-                  <tr>
-                    <th>Dag</th>
-                    {team.map(({ naam }) => (
-                      <th>{naam}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody data-days />
-                <tfoot data-totals />
-              </table>
-            </div>
-            <p class="total" data-grand-total />
-          </section>
+            <a
+              class="quiet-link"
+              href="https://track.toggl.com/timer"
+              target="_blank"
+              rel="noopener"
+            >
+              Open Toggl
+            </a>
+          </div>
+          <div class="planner-card">
+            <div class="week" data-week-grid />
+          </div>
 
-          <section class="block">
-            <h3 class="block-title">Laatste sessies</h3>
+          <h3 class="uren-title">Laatste sessies</h3>
+          <div class="planner-card">
             <ul class="sessions" data-sessions />
-          </section>
+          </div>
         </>
       )
     }
@@ -118,8 +96,8 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     wat: string;
   };
 
-  const root = document.querySelector<HTMLElement>("[data-days]");
-  if (root && SUPABASE.url && SUPABASE.key) {
+  const grid = document.querySelector<HTMLElement>("[data-week-grid]");
+  if (grid && SUPABASE.url && SUPABASE.key) {
     const db = createClient(SUPABASE.url, SUPABASE.key);
     const $ = <T extends HTMLElement>(selector: string) =>
       document.querySelector<T>(selector)!;
@@ -139,20 +117,29 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
     };
     const length = (s: { van: string; tot: string }) =>
       Date.parse(s.tot) - Date.parse(s.van);
+    // 5412000 -> "1:30:12", exact to the second
     const clock = (ms: number) => {
       const s = Math.max(0, Math.floor(ms / 1000));
       return `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
     };
-    // 5412000 -> "1:30:12", exact to the second, never rounded
-    const hours = (ms: number) => (Math.floor(ms / 1000) > 0 ? clock(ms) : "–");
+    // 5412000 -> "1:30" for small spaces; the exact time is in the tooltip
+    const hm = (ms: number) => {
+      const m = Math.floor(ms / 60000);
+      return m > 0 ? `${Math.floor(m / 60)}:${pad(m % 60)}` : "";
+    };
     const time = (iso: string) =>
       new Date(iso).toLocaleTimeString("nl-BE", {
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
       });
     const dayLabel = (key: string, options: Intl.DateTimeFormatOptions) =>
       new Date(`${key}T12:00:00`).toLocaleDateString("nl-BE", options);
+    const el = (tag: string, cls = "", text = "") => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text) node.textContent = text;
+      return node;
+    };
 
     // Week 1 of the bachelor project starts on Monday 26 October 2026.
     const START = new Date(2026, 9, 26).getTime();
@@ -170,27 +157,20 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       return total;
     }
 
-    const cell = (tag: "th" | "td", text: string) => {
-      const el = document.createElement(tag);
-      el.textContent = text;
-      return el;
-    };
-
     // ---- drawing
     function renderPeople() {
       const now = Date.now();
       for (const card of people) {
         const person = card.dataset.person!;
         const timer = timers.find(t => t.wie === person);
+        const today = worked(person, dayKey(now), now);
         card.classList.toggle("person--on", Boolean(timer));
-        card.querySelector("[data-state]")!.textContent = timer
-          ? `werkt sinds ${time(timer.sinds)}${timer.wat ? ` · ${timer.wat}` : ""}`
-          : "niet aan het werk";
         card.querySelector("[data-clock]")!.textContent = timer
           ? clock(now - Date.parse(timer.sinds))
-          : "0:00:00";
-        card.querySelector("[data-today]")!.textContent =
-          `vandaag ${hours(worked(person, dayKey(now), now))}`;
+          : "niet bezig";
+        card.querySelector("[data-state]")!.textContent = timer
+          ? timer.wat || "aan het werk"
+          : `vandaag ${hm(today) || "0:00"}`;
       }
     }
 
@@ -204,74 +184,74 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
       $("[data-week-title]").textContent =
         `Week ${week} · ${dayLabel(days[0], short)} – ${dayLabel(days[6], short)}`;
 
-      root!.replaceChildren(
-        ...days.map(key => {
-          const tr = document.createElement("tr");
-          if (key === dayKey(now)) tr.className = "is-today";
-          tr.append(
-            cell("th", dayLabel(key, { weekday: "short", ...short })),
-            ...names.map(person => cell("td", hours(worked(person, key, now))))
+      const cells: HTMLElement[] = [el("div", "week__corner")];
+      for (const key of days) {
+        const head = el(
+          "div",
+          `week__day${key === dayKey(now) ? " is-today" : ""}`
+        );
+        head.append(
+          el("span", "", dayLabel(key, { weekday: "short" })),
+          el("strong", "", dayLabel(key, { day: "numeric" }))
+        );
+        cells.push(head);
+      }
+      cells.push(el("div", "week__day week__total-head", "totaal"));
+
+      for (const person of names) {
+        const name = el("div", "week__name");
+        const photo = document.createElement("img");
+        photo.src = `${import.meta.env.BASE_URL}team/${person.toLowerCase()}.jpg`;
+        photo.alt = "";
+        name.append(photo, person);
+        cells.push(name);
+        let total = 0;
+        for (const key of days) {
+          const ms = worked(person, key, now);
+          total += ms;
+          const cell = el(
+            "div",
+            `week__cell${key === dayKey(now) ? " is-today" : ""}`,
+            hm(ms)
           );
-          return tr;
-        })
-      );
-
-      const totals = document.createElement("tr");
-      totals.append(
-        cell("th", "Totaal"),
-        ...names.map(person =>
-          cell(
-            "td",
-            hours(days.reduce((sum, key) => sum + worked(person, key, now), 0))
-          )
-        )
-      );
-      $("[data-totals]").replaceChildren(totals);
-
-      $("[data-grand-total]").textContent = `Sinds de start: ${names
-        .map(person => {
-          const done = sessies
-            .filter(s => s.wie === person)
-            .reduce((sum, s) => sum + length(s), 0);
-          const running = timers
-            .filter(t => t.wie === person)
-            .reduce((sum, t) => sum + now - Date.parse(t.sinds), 0);
-          return `${person} ${hours(done + running)}`;
-        })
-        .join(" · ")}`;
+          // 8 hours or more is the darkest.
+          const strength = Math.min(ms / (8 * HOUR), 1);
+          cell.style.setProperty(
+            "--strength",
+            String(ms > 0 ? 0.12 + strength * 0.78 : 0)
+          );
+          if (strength > 0.45) cell.classList.add("is-dark");
+          cell.title =
+            ms > 0
+              ? `${person} · ${dayLabel(key, { weekday: "long" })}: ${clock(ms)}`
+              : "";
+          cells.push(cell);
+        }
+        cells.push(el("div", "week__total", hm(total) || "–"));
+      }
+      grid!.replaceChildren(...cells);
     }
 
     function renderSessions() {
       const items = [...sessies]
         .sort((a, b) => b.van.localeCompare(a.van))
-        .slice(0, 15)
+        .slice(0, 5)
         .map(s => {
-          const li = document.createElement("li");
-          const span = (className: string, text: string) => {
-            const el = document.createElement("span");
-            el.className = className;
-            el.textContent = text;
-            return el;
-          };
-          const day = dayLabel(dayKey(s.van), {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-          });
+          const li = el("li");
           li.append(
-            span("sessions__when", `${day} · ${time(s.van)}–${time(s.tot)}`),
-            span("sessions__who", s.wie),
-            span("sessions__what", s.wat || "—"),
-            span("sessions__length", hours(length(s)))
+            el(
+              "span",
+              "sessions__when",
+              `${dayLabel(dayKey(s.van), { weekday: "short", day: "numeric", month: "short" })} · ${time(s.van)}`
+            ),
+            el("span", "sessions__who", s.wie),
+            el("span", "sessions__what", s.wat || "—"),
+            el("span", "sessions__length", hm(length(s)))
           );
           return li;
         });
-      if (!items.length) {
-        const li = document.createElement("li");
-        li.className = "empty";
-        li.textContent = "Nog geen uren.";
-        items.push(li);
-      }
+      if (!items.length)
+        items.push(el("li", "sessions__empty", "Nog geen uren."));
       $("[data-sessions]").replaceChildren(...items);
     }
 
@@ -331,172 +311,188 @@ const ready = Boolean(SUPABASE.url && SUPABASE.key);
   }
 </script>
 
-<style>
-  .intro {
-    max-width: 40rem;
-    margin-bottom: var(--space-m);
+<style is:global>
+  .uren-empty {
     color: var(--muted);
-  }
-  .intro strong {
-    color: var(--ink);
-  }
-  .empty {
-    font-size: var(--fs-sm);
-    color: var(--muted);
-  }
-  .message {
-    margin-bottom: var(--space-s);
-    padding: 0.6rem 0.9rem;
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--blue);
-    border-radius: 8px;
-    background-color: var(--card);
     font-size: var(--fs-sm);
   }
-  .block {
-    margin-bottom: var(--space-l);
+  .uren-empty[hidden] {
+    display: none;
   }
-  .block-title {
-    margin-bottom: 0.75rem;
-    font-size: var(--fs-md);
-    font-weight: 700;
-  }
+
+  /* ---- now */
   .people {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: 0.75rem;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-l);
+  }
+  @media (min-width: 40rem) {
+    .people {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
   .person {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem 1.25rem;
+    padding: var(--space-xs);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 16px;
     background-color: var(--card);
   }
-  .person--on {
-    border: 2px solid var(--blue);
-  }
-  .person__top {
+  .person__head {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
-  .light {
-    width: 0.65rem;
-    height: 0.65rem;
+  .person__head img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  .person__light {
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-left: auto;
     border-radius: 999px;
     background-color: var(--line);
   }
-  .person--on .light {
-    background-color: #10b981;
-  }
-  .state {
-    flex-basis: 100%;
-    font-size: var(--fs-sm);
-    color: var(--muted);
-  }
-  .clock {
+  .person__clock {
+    margin-top: var(--space-xs);
     font-size: var(--fs-xl);
-    font-weight: 800;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-  .person:not(.person--on) .clock {
+    letter-spacing: -0.02em;
     color: var(--muted);
   }
-  .today {
+  .person__line {
     font-size: var(--fs-sm);
     color: var(--muted);
-  }
-  .week-switch {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-  .week-switch .block-title {
-    margin: 0;
-  }
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background-color: var(--card);
-  }
-  .hours {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--fs-sm);
-    font-variant-numeric: tabular-nums;
-  }
-  .hours :global(td),
-  .hours :global(th) {
-    padding: 0.55rem 1rem;
-    text-align: right;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .hours :global(th:first-child) {
-    text-align: left;
-    font-weight: 500;
-    color: var(--muted);
+  .person--on {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
   }
-  .hours thead :global(th) {
-    border-bottom: 1px solid var(--line);
-    font-weight: 700;
+  .person--on .person__light {
+    background-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--today-ring);
+  }
+  .person--on .person__clock {
     color: var(--ink);
   }
-  .hours :global(tbody tr + tr) {
-    border-top: 1px solid var(--line);
-  }
-  .hours :global(tr.is-today) {
-    background-color: var(--paper);
-  }
-  .hours :global(tr.is-today th) {
-    font-weight: 700;
-    color: var(--blue);
-  }
-  .hours :global(tfoot tr) {
-    border-top: 2px solid var(--line);
-    font-weight: 700;
-  }
-  .total {
-    margin-top: 0.6rem;
+
+  /* ---- week */
+  .week {
+    display: grid;
+    grid-template-columns: 8rem repeat(7, minmax(3rem, 1fr)) 4.5rem;
+    gap: 0.35rem;
+    min-width: 36rem;
+    padding: var(--space-xs);
     font-size: var(--fs-sm);
-    color: var(--muted);
   }
-  .sessions {
+  .week__day {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    padding-bottom: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.2;
   }
-  .sessions :global(li) {
+  .week__day strong {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .week__day.is-today strong {
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background-color: var(--today);
+  }
+  .week__total-head {
+    justify-content: flex-end;
+  }
+  .week__name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+  .week__name img {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  .week__cell {
     display: grid;
-    grid-template-columns: 12rem 5rem 1fr auto;
-    gap: 0.75rem;
-    align-items: baseline;
-    padding: 0.55rem 0;
-    border-top: 1px solid var(--line);
+    place-items: center;
+    height: 2.5rem;
+    border-radius: 8px;
+    background-color: rgba(35, 35, 35, var(--strength, 0));
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .week__cell.is-dark {
+    color: var(--card);
+  }
+  .week__cell.is-today {
+    box-shadow: inset 0 0 0 2px var(--today-ring);
+  }
+  .week__total {
+    align-self: center;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- sessions */
+  .uren-bar {
+    margin-top: 0;
+  }
+  .uren-title {
+    margin: var(--space-l) 0 var(--space-xs);
+    font-size: var(--fs-base);
+    font-weight: 600;
+  }
+  .sessions li {
+    display: grid;
+    grid-template-columns: 9rem 5rem 1fr 3.5rem;
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--line);
     font-size: var(--fs-sm);
   }
-  .sessions :global(li:first-child) {
-    border-top: 0;
+  .sessions li:last-child {
+    border-bottom: 0;
   }
-  .sessions :global(.sessions__who) {
-    font-weight: 700;
-  }
-  .sessions :global(.sessions__when),
-  .sessions :global(.sessions__length) {
+  .sessions__when,
+  .sessions__length {
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .sessions__who {
+    font-weight: 600;
+  }
+  .sessions__what {
+    overflow: hidden;
     white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .sessions__length {
+    text-align: right;
+  }
+  .sessions__empty {
+    color: var(--muted);
   }
   @media (max-width: 40rem) {
-    .sessions :global(li) {
+    .sessions li {
       grid-template-columns: 1fr auto;
-      row-gap: 0.1rem;
     }
-    .sessions :global(.sessions__when) {
+    .sessions__when {
       grid-column: 1 / -1;
     }
   }

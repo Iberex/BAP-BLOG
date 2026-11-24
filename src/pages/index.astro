@@ -5,10 +5,34 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import getSortedPosts from "@utils/getSortedPosts";
+import { Icon } from "astro-icon/components";
+import { bapWeek } from "@utils/pijlers";
+import { bugs } from "@utils/bugs";
 import home from "../data/home.json";
+import team from "../data/team.json";
 
 const base = import.meta.env.BASE_URL;
-const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
+const all = getSortedPosts(await getCollection("blog"));
+const latest = all.slice(0, 3);
+
+// Jury is on 17 December 2026; week 1 starts on 26 October.
+const DAY = 24 * 60 * 60 * 1000;
+const jury = Date.UTC(2026, 11, 17);
+const today = new Date();
+const daysLeft = Math.max(
+  0,
+  Math.ceil(
+    (jury - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) /
+      DAY
+  )
+);
+const TOTAL_WEEKS = 8;
+const stat = bugs(today);
+const week = Math.max(1, bapWeek(today));
+const order = ["Senne", "Tjorven", "Ibe"];
+const members = [...team].sort(
+  (a, b) => order.indexOf(a.naam) - order.indexOf(b.naam)
+);
 ---
 
 <Layout>
@@ -18,14 +42,77 @@ const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
       <div>
         <h1 class="hero__title">{home.titel}</h1>
         {home.vraag && <p class="hero__subtitle">{home.vraag}</p>}
+        <div class="hero__actions">
+          <a href={`${base}posts/`} class="btn btn--primary"
+            ><Icon name="lucide:book-open" /> Lees de blog</a
+          >
+          <a href={`${base}planning/`} class="btn"
+            ><Icon name="lucide:calendar-days" /> Planning</a
+          >
+        </div>
       </div>
     </div>
 
     <div class="page">
+      <div class="stats">
+        <div class="stat">
+          <span class="stat__label"
+            ><Icon name="lucide:calendar-days" /> Projectweek</span
+          >
+          <span class="stat__value">
+            <span class="stat__num" data-count={week}>{week}</span>
+            <span class="stat__of">van de {TOTAL_WEEKS}</span>
+          </span>
+        </div>
+        <a href={`${base}posts/`} class="stat">
+          <span class="stat__label"><Icon name="lucide:pen-line" /> Blog</span>
+          <span class="stat__value">
+            <span class="stat__num" data-count={all.length}>{all.length}</span>
+            <span class="stat__unit">posts</span>
+          </span>
+        </a>
+        <div class="stat">
+          <span class="stat__label"
+            ><Icon name="lucide:moon-star" /> Tot de jury</span
+          >
+          <span class="stat__value">
+            {
+              daysLeft === 0 ? (
+                <span class="stat__num">Vandaag</span>
+              ) : (
+                <>
+                  <span class="stat__num" data-count={daysLeft}>
+                    {daysLeft}
+                  </span>
+                  <span class="stat__unit">keer slapen</span>
+                  <span class="zzz" aria-hidden="true">
+                    <>
+                      <i>z</i>
+                      <i>z</i>
+                      <i>Z</i>
+                    </>
+                  </span>
+                </>
+              )
+            }
+          </span>
+        </div>
+        <div class="stat">
+          <span class="stat__label"><Icon name="lucide:bug" /> Bugs</span>
+          <span class="stat__value">
+            <span class="stat__num" id="bugs-totaal" data-count={stat.gevonden}
+              >{stat.gevonden}</span
+            >
+          </span>
+        </div>
+      </div>
+
       <section class="block">
         <div class="section-head">
           <h2>Laatste posts</h2>
-          <a href={`${base}posts/`} class="link-arrow">alle posts →</a>
+          <a href={`${base}posts/`} class="btn"
+            >Alle posts <Icon name="lucide:arrow-right" /></a
+          >
         </div>
         <ul class="list">
           {
@@ -38,7 +125,85 @@ const latest = getSortedPosts(await getCollection("blog")).slice(0, 3);
           }
         </ul>
       </section>
+
+      <section class="block">
+        <div class="section-head">
+          <h2>Team</h2>
+          <a href={`${base}team/`} class="btn"
+            >Meer over ons <Icon name="lucide:arrow-right" /></a
+          >
+        </div>
+        <div class="home-team">
+          {
+            members.map(({ naam, rol }) => (
+              <a href={`${base}team/`} class="home-member">
+                <img src={`${base}team/${naam.toLowerCase()}.jpg`} alt="" />
+                <span>
+                  <span class="home-member__name">{naam}</span>
+                  <br />
+                  <span class="home-member__role">{rol}</span>
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </section>
     </div>
   </main>
   <Footer />
 </Layout>
+
+<script>
+  import { bugs } from "@utils/bugs";
+  // The site is only rebuilt on a push, so work out today's bug numbers in the browser.
+  const stat = bugs(new Date());
+  const totaal = document.getElementById("bugs-totaal");
+  if (totaal) {
+    totaal.dataset.count = String(stat.gevonden);
+    totaal.textContent = String(stat.gevonden);
+  }
+  // While someone looks, a new bug sneaks in now and then (8 to 20 s).
+  if (totaal && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const sneak = () => {
+      setTimeout(
+        () => {
+          totaal.dataset.count = String(Number(totaal.dataset.count) + 1);
+          totaal.textContent = totaal.dataset.count;
+          totaal.classList.remove("bump");
+          void totaal.offsetWidth;
+          totaal.classList.add("bump");
+          sneak();
+        },
+        8000 + Math.random() * 12000
+      );
+    };
+    setTimeout(sneak, 1500);
+  }
+  // Numbers count up once when the stats scroll into view (skipped with reduced motion).
+  const counters = document.querySelectorAll<HTMLElement>("[data-count]");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "IntersectionObserver" in window) {
+    const run = (el: HTMLElement) => {
+      const end = Number(el.dataset.count);
+      if (!end) return;
+      const t0 = performance.now();
+      const ms = 1200;
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - t0) / ms);
+        el.textContent = String(Math.round(end * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      el.textContent = "0";
+      requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          run(e.target as HTMLElement);
+          io.unobserve(e.target);
+        }
+      });
+    });
+    counters.forEach(c => io.observe(c));
+  }
+</script>

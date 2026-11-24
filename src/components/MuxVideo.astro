@@ -16,6 +16,9 @@ const { playbackId, poster, title, class: className } = Astro.props;
   title={title ?? undefined}
   metadata-video-title={title ?? undefined}
   stream-type="on-demand"
+  accent-color="#2f5be0"
+  primary-color="#ffffff"
+  secondary-color="#232323"
   class:list={["mux", className]}></mux-player>
 
 <script>
@@ -28,5 +31,11 @@ const { playbackId, poster, title, class: className } = Astro.props;
     aspect-ratio: 16 / 9;
     width: 100%;
     overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: #f3f1eb;
+    --media-primary-color: #fff;
+    --media-secondary-color: rgba(35, 35, 35, 0.85);
+    --media-accent-color: #2f5be0;
   }
 </style>

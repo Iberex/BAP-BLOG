@@ -5,6 +5,7 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Card from "@components/Card";
 import { SITE } from "@config";
+import { Icon } from "astro-icon/components";
 import { PIJLERS, bapWeek } from "@utils/pijlers";
 import { slugifyStr } from "@utils/slugify";
 import { SOORTEN } from "@utils/soorten";
@@ -24,6 +25,13 @@ for (const post of paginatedPosts) {
   weeks.set(week, [...(weeks.get(week) ?? []), post]);
 }
 
+const PIJLER_ICON: Record<string, string> = {
+  ux: "lucide:layout-template",
+  design: "lucide:palette",
+  dev: "lucide:code-xml",
+  ai: "lucide:sparkles",
+};
+
 const soorten = [
   ...new Set(
     paginatedPosts.map(({ data }) => data.soort).filter(Boolean) as string[]
@@ -40,36 +48,91 @@ const soorten = [
         href="https://app.pagescms.org/iberex/BAP-BLOG"
         target="_blank"
         rel="noopener"
-        class="quiet-link">+ nieuwe post</a
+        class="btn btn--primary"><Icon name="lucide:plus" /> Nieuwe post</a
       >
     </div>
     <div class="filters" aria-label="Filters">
-      <div class="filter-row" data-filter="soort">
-        <span class="filter-label">Soort</span>
-        <button class="chip" aria-pressed="true" data-value="">Alles</button>
-        {
-          soorten.map(soort => (
-            <button
-              class={`chip type-chip soort-${slugifyStr(soort)}`}
-              aria-pressed="false"
-              data-value={slugifyStr(soort)}
+      <div class="fdrop filter-group" data-filter="soort" data-label="Soort">
+        <button
+          type="button"
+          class="fbtn"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+        >
+          <Icon name="lucide:tag" />
+          <span class="fbtn-text">Soort</span>
+          <Icon name="lucide:chevron-down" class="fbtn-chevron" />
+        </button>
+        <div class="fmenu" role="listbox" hidden>
+          <div class="fmenu-head">
+            <span>Wat voor post?</span>
+            <button type="button" class="fmenu-clear" data-value=""
+              >Wissen</button
             >
-              {SOORTEN[soort]?.label ?? soort}
-            </button>
-          ))
-        }
+          </div>
+          {
+            soorten.map(soort => (
+              <button
+                type="button"
+                class="fopt"
+                role="option"
+                aria-pressed="false"
+                data-value={slugifyStr(soort)}
+                data-text={SOORTEN[soort]?.label ?? soort}
+              >
+                {SOORTEN[soort]?.label ?? soort}
+                <Icon name="lucide:check" class="fopt-check" />
+              </button>
+            ))
+          }
+        </div>
       </div>
-      <div class="filter-row" data-filter="pijler">
-        <span class="filter-label">Pijler</span>
-        <button class="chip" aria-pressed="true" data-value="">Alles</button>
-        {
-          PIJLERS.map(({ key, label }) => (
-            <button class="chip" aria-pressed="false" data-value={key}>
-              {label}
-            </button>
-          ))
-        }
+      <div
+        class="fdrop filter-group"
+        data-filter="pijler"
+        data-label="Onderwerp"
+      >
+        <button
+          type="button"
+          class="fbtn"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+        >
+          <Icon name="lucide:layers" />
+          <span class="fbtn-text">Onderwerp</span>
+          <Icon name="lucide:chevron-down" class="fbtn-chevron" />
+        </button>
+        <div class="fmenu" role="listbox" hidden>
+          <div class="fmenu-head">
+            <span>Waarover?</span>
+            <button type="button" class="fmenu-clear" data-value=""
+              >Wissen</button
+            >
+          </div>
+          {
+            PIJLERS.map(({ key, label }) => (
+              <button
+                type="button"
+                class="fopt"
+                role="option"
+                aria-pressed="false"
+                data-value={key}
+                data-text={label}
+              >
+                <Icon name={PIJLER_ICON[key]} class="fopt-icon" />
+                {label}
+                <Icon name="lucide:check" class="fopt-check" />
+              </button>
+            ))
+          }
+        </div>
       </div>
+      <span class="filter-result" aria-live="polite">
+        <span id="filter-count"></span>
+        <button type="button" id="filter-reset" class="filter-reset" hidden>
+          Alles wissen
+        </button>
+      </span>
     </div>
 
     {
@@ -102,18 +165,6 @@ const soorten = [
   <Footer />
 </Layout>
 
-<style>
-  .filters {
-    @apply mb-12 flex flex-col gap-2 text-base;
-  }
-  .filter-row {
-    @apply flex flex-wrap items-center gap-2;
-  }
-  .filter-label {
-    @apply w-14 text-sm opacity-60;
-  }
-</style>
-
 <script>
   // /posts/ and every post share one page file, so this script is bundled on
   // post pages too. Only run it where the post list is, or it crashes there
@@ -121,7 +172,6 @@ const soorten = [
   if (document.getElementById("pijler-labels")) {
     // Filters live in the URL (?pijler=ux&soort=feedback) so a filtered view can be shared.
     const params = new URLSearchParams(location.search);
-    if (params.has("soort") && params.has("pijler")) params.delete("pijler");
     const rows = document.querySelectorAll<HTMLElement>(".post-row");
     const groups = document.querySelectorAll<HTMLElement>(".week-group");
 
@@ -165,32 +215,69 @@ const soorten = [
         group.hidden = !group.querySelector(".post-row:not([hidden])");
       });
       document.getElementById("no-results")!.hidden = shown > 0;
+      document.getElementById("filter-count")!.textContent =
+        pijler || soort ? `${shown} ${shown === 1 ? "post" : "posts"}` : "";
+      document.getElementById("filter-reset")!.hidden = !pijler && !soort;
 
-      document
-        .querySelectorAll<HTMLElement>(".filter-row")
-        .forEach(filterRow => {
-          const active = params.get(filterRow.dataset.filter!) ?? "";
-          filterRow.querySelectorAll("button").forEach(button => {
-            button.setAttribute(
-              "aria-pressed",
-              String(button.dataset.value === active)
-            );
-          });
+      document.querySelectorAll<HTMLElement>(".fdrop").forEach(drop => {
+        const active = params.get(drop.dataset.filter!) ?? "";
+        let text = "";
+        drop.querySelectorAll<HTMLElement>(".fopt").forEach(option => {
+          const on = option.dataset.value === active;
+          option.setAttribute("aria-pressed", String(on));
+          if (on) text = option.dataset.text ?? "";
         });
+        drop.classList.toggle("is-active", !!active);
+        drop.querySelector(".fbtn-text")!.textContent = active
+          ? `${drop.dataset.label}: ${text}`
+          : drop.dataset.label!;
+      });
     }
 
-    document.querySelectorAll<HTMLElement>(".filter-row").forEach(filterRow => {
-      filterRow.addEventListener("click", event => {
-        const button = (event.target as HTMLElement).closest("button");
+    const drops = document.querySelectorAll<HTMLElement>(".fdrop");
+    const closeAll = () =>
+      drops.forEach(drop => {
+        drop.querySelector<HTMLElement>(".fmenu")!.hidden = true;
+        drop.querySelector(".fbtn")!.setAttribute("aria-expanded", "false");
+      });
+    document.addEventListener("click", event => {
+      if (!(event.target as HTMLElement).closest(".fdrop")) closeAll();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeAll();
+    });
+
+    drops.forEach(drop => {
+      const menu = drop.querySelector<HTMLElement>(".fmenu")!;
+      const toggle = drop.querySelector<HTMLElement>(".fbtn")!;
+      toggle.addEventListener("click", () => {
+        const open = menu.hidden;
+        closeAll();
+        menu.hidden = !open;
+        toggle.setAttribute("aria-expanded", String(open));
+      });
+      menu.addEventListener("click", event => {
+        const button = (event.target as HTMLElement).closest<HTMLElement>(
+          "button[data-value]"
+        );
         if (!button) return;
         const value = button.dataset.value;
-        params.delete("soort");
-        params.delete("pijler");
-        if (value) params.set(filterRow.dataset.filter!, value);
+        // Each filter works on its own, so soort and pijler combine.
+        const key = drop.dataset.filter!;
+        params.delete(key);
+        if (value) params.set(key, value);
         const query = params.toString();
         history.replaceState(null, "", query ? `?${query}` : location.pathname);
         apply();
+        closeAll();
       });
+    });
+
+    document.getElementById("filter-reset")!.addEventListener("click", () => {
+      params.delete("soort");
+      params.delete("pijler");
+      history.replaceState(null, "", location.pathname);
+      apply();
     });
 
     apply();

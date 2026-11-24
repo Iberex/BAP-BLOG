@@ -1,6 +1,4 @@
 ---
-import home from "../data/home.json";
-
 export interface Props {
   activeNav?: "posts" | "tags" | "planning" | "uren" | "team";
 }
@@ -8,10 +6,10 @@ export interface Props {
 const { activeNav } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const items = [
-  { key: "posts", label: "blog", href: `${base}posts/` },
-  { key: "planning", label: "planning", href: `${base}planning/` },
-  { key: "uren", label: "uren", href: `${base}uren/` },
-  { key: "team", label: "team", href: `${base}team/` },
+  { key: "posts", label: "Blog", href: `${base}posts/` },
+  { key: "planning", label: "Planning", href: `${base}planning/` },
+  { key: "uren", label: "Uren", href: `${base}uren/` },
+  { key: "team", label: "Team", href: `${base}team/` },
 ];
 ---
 
@@ -19,7 +17,7 @@ const items = [
   <a id="skip-to-content" href="#main-content" class="sr-only">Naar inhoud</a>
   <nav class="site-nav">
     <h2 class="site-nav__title">
-      <a href={base} class="plain">{home.titel}</a>
+      <a href={base} class="plain">Bachelorproef</a>
     </h2>
     <div class="site-nav__list">
       {

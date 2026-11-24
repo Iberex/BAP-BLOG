@@ -8,6 +8,7 @@ import PostHead from "@components/PostHead.astro";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import { SITE } from "@config";
+import { Icon } from "astro-icon/components";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -58,39 +59,46 @@ const layoutProps = {
 
   <main id="main-content" class="post">
     <p class="post-top">
-      <a href={`${base}posts/`} class="post-back">Alle posts</a>
+      <a href={`${base}posts/`} class="btn"
+        ><Icon name="lucide:arrow-left" /> Alle posts</a
+      >
     </p>
 
-    {
-      blokPost ? (
-        <PostBody data={post.data} />
-      ) : (
-        <PostHead
-          title={title}
-          author={author}
-          soort={soort}
-          date={pubDatetime}
-          pijlers={pijlers}
-        />
-      )
-    }
-
-    <div class="post-content">
-      {!blokPost && <PostExtras data={post.data} />}
+    <div class="post-sheet">
       {
-        !blokPost && (
-          <article id="article" role="article" class="prose max-w-none">
-            <Content />
-          </article>
+        blokPost ? (
+          <PostBody data={post.data} />
+        ) : (
+          <PostHead
+            title={title}
+            author={author}
+            soort={soort}
+            date={pubDatetime}
+            pijlers={pijlers}
+            cover={post.data.beelden?.[0]?.src}
+          />
         )
       }
+
+      <div class="post-content">
+        {!blokPost && <PostExtras data={post.data} />}
+        {
+          !blokPost && (
+            <article id="article" role="article" class="prose max-w-none">
+              <Content />
+            </article>
+          )
+        }
+      </div>
     </div>
 
     <nav class="post-buttons" aria-label="Andere posts">
       {
         next ? (
           <a href={`${base}posts/${next.slug}/`} class="post-nav">
-            <span>← volgende post</span>
+            <span class="post-nav__label">
+              <Icon name="lucide:arrow-left" /> Volgende post
+            </span>
             <strong>{next.data.title}</strong>
           </a>
         ) : (
@@ -103,7 +111,9 @@ const layoutProps = {
             href={`${base}posts/${prev.slug}/`}
             class="post-nav post-nav--prev"
           >
-            <span>vorige post →</span>
+            <span class="post-nav__label">
+              Vorige post <Icon name="lucide:arrow-right" />
+            </span>
             <strong>{prev.data.title}</strong>
           </a>
         )
