@@ -183,11 +183,12 @@ inhoud:
       minder kleur, meer ruimte voor de posts.
 
 
-      Een post lezen was moeilijk omdat het raster achter de tekst doorliep.
-      Daarom staat elke post nu op een **wit blad**. De tekst blijft een smalle
-      kolom die goed leest, de beelden mogen breder dan de tekst. Ook nieuw: een
-      post kan meer dan één soort hebben. Deze is tegelijk een reflectie en een
-      algemene post.
+      Voor we het rasterdesign toevoegden, las een post prima. Met het raster
+      achter de tekst niet meer: het liep door onder de woorden en maakte lezen
+      vermoeiend. Daarom voegden we een **witte achtergrond** toe: elke post
+      staat nu op een wit blad. De tekst blijft een smalle kolom die goed leest,
+      de beelden mogen breder dan de tekst. Ook nieuw: een post kan meer dan één
+      soort hebben. Deze is tegelijk een reflectie en een algemene post.
   - _template: beeld
     src: /BAP-BLOG/beelden/nieuw-tijdperk/12-blog-voor.jpg
   - _template: beeld
