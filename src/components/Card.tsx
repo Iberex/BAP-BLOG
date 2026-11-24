@@ -34,7 +34,17 @@ export default function Card({ href, frontmatter }: Props) {
         {beelden[0] ? (
           <img src={beelden[0].src!} alt="" loading="lazy" />
         ) : (
-          <span className="card__blank" />
+          // No image: a faint scribble on paper, turned differently per post.
+          <span className="card__blank">
+            <span
+              className="card__scribble"
+              style={{
+                maskImage: `url(${import.meta.env.BASE_URL}krabbel.png)`,
+                WebkitMaskImage: `url(${import.meta.env.BASE_URL}krabbel.png)`,
+                transform: `rotate(${[...title].reduce((n, c) => n + c.charCodeAt(0), 0) % 360}deg)`,
+              }}
+            />
+          </span>
         )}
         <p className="card__tags">
           {soorten.map(soort => (

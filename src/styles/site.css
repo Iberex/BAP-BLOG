@@ -192,11 +192,23 @@ a:hover {
   object-fit: cover;
   border-bottom: 1px solid var(--line);
 }
+/* Post without an image: a faint scribble (our logo) on plain paper. */
 .card .card__blank {
+  display: grid;
+  place-items: center;
   background-color: var(--paper);
-  background-image: linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 18px 18px;
+}
+.card__scribble {
+  width: 40%;
+  aspect-ratio: 1;
+  background-color: var(--ink);
+  opacity: 0.16;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
 }
 .card__tags {
   display: flex;

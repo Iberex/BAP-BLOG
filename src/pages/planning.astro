@@ -2,7 +2,7 @@
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import { SITE } from "@config";
+import { SITE, SUPABASE } from "@config";
 import { Icon } from "astro-icon/components";
 import lucide from "@iconify-json/lucide/icons.json";
 
@@ -17,6 +17,7 @@ const ICON_NAMES: Record<string, string> = {
   pencil: "pencil",
   check: "check",
   link: "link",
+  star: "star",
 };
 const iconBodies = Object.fromEntries(
   Object.entries(ICON_NAMES).map(([key, name]) => [
@@ -24,6 +25,22 @@ const iconBodies = Object.fromEntries(
     lucide.icons[name as keyof typeof lucide.icons].body,
   ])
 );
+
+// Snapshot of the planning at build time: shown at once on a first visit,
+// until the live data has loaded.
+let snapshot = "[]";
+try {
+  const res = await fetch(
+    `${SUPABASE.url}/rest/v1/planning?select=*&order=van`,
+    {
+      headers: {
+        apikey: SUPABASE.key,
+        Authorization: `Bearer ${SUPABASE.key}`,
+      },
+    }
+  );
+  if (res.ok) snapshot = JSON.stringify(await res.json());
+} catch {}
 ---
 
 <Layout title={`Planning | ${SITE.title}`}>
@@ -31,6 +48,7 @@ const iconBodies = Object.fromEntries(
   <main id="main-content" class="page planner">
     <h2 class="page-title">Planning</h2>
     <div hidden data-icons={JSON.stringify(iconBodies)}></div>
+    <div hidden data-snapshot={snapshot}></div>
 
     <!-- One bar: other weeks on the left, view and editing on the right. -->
     <div class="planner-bar">
@@ -164,6 +182,8 @@ const iconBodies = Object.fromEntries(
     notitie: string;
     // Link to the blog post about this task (optional).
     post: string | null;
+    // Priority: 1 to 3 stars, 3 is the most important. Empty = no priority.
+    prio?: number | null;
   };
 
   const db = createClient(SUPABASE.url, SUPABASE.key);
@@ -203,6 +223,15 @@ const iconBodies = Object.fromEntries(
     const node = document.createElement("span");
     node.className = "ico";
     node.innerHTML = svg(kind);
+    return node;
+  };
+  // Priority as filled stars (1 to 3); nothing when a task has no priority.
+  const stars = (prio?: number | null) => {
+    const node = document.createElement("span");
+    node.className = "prio";
+    const n = Math.min(3, Math.max(0, prio ?? 0));
+    node.setAttribute("aria-label", `Prioriteit ${n} van 3`);
+    node.innerHTML = svg("star").repeat(n);
     return node;
   };
   // Status as a pattern: empty = to do, stripes = busy, filled = done.
@@ -277,12 +306,31 @@ const iconBodies = Object.fromEntries(
   async function load() {
     const { data, error } = await db.from("planning").select("*").order("van");
     if (error) {
+      // Keep showing the saved copy if there is one.
+      if (items.length) return;
       statusEl.hidden = false;
       statusEl.textContent = "De planning kon niet geladen worden.";
       return;
     }
     items = data as Item[];
+    store.set(CACHE, JSON.stringify(items));
     render();
+  }
+
+  // Last known planning: saved in this browser (also by every other page of
+  // the blog, see Layout.astro), or else the snapshot from the build.
+  const CACHE = "planning-cache";
+  function saved(): Item[] {
+    for (const text of [
+      store.get(CACHE),
+      $("[data-snapshot]").dataset.snapshot ?? "",
+    ]) {
+      try {
+        const list = JSON.parse(text);
+        if (Array.isArray(list) && list.length) return list;
+      } catch {}
+    }
+    return [];
   }
 
   function failed(message: string) {
@@ -343,6 +391,17 @@ const iconBodies = Object.fromEntries(
     const dates = el("span", "dates");
     dates.append(van, " – ", tot);
     const status = choice(["Te doen", "Bezig", "Klaar"], item.status, "Status");
+    const prio = document.createElement("select");
+    prio.setAttribute("aria-label", "Prioriteit");
+    for (const [value, text] of [
+      ["", "Geen prio"],
+      ["1", "★"],
+      ["2", "★★"],
+      ["3", "★★★"],
+    ])
+      prio.append(
+        new Option(text, value, false, value === String(item.prio ?? ""))
+      );
 
     const pijler = choice(
       ["Development", "Design", "UX", "Algemeen"],
@@ -374,6 +433,7 @@ const iconBodies = Object.fromEntries(
     line2.append(
       dates,
       status,
+      prio,
       more,
       button("quiet-link", "annuleren", () => {
         changing = null;
@@ -388,6 +448,7 @@ const iconBodies = Object.fromEntries(
           van: van.value || item.van,
           tot: tot.value || van.value || item.tot,
           status: status.value,
+          prio: prio.value ? Number(prio.value) : null,
           pijler: pijler.value,
           soort: soort.value,
           notitie: notitie.value.trim(),
@@ -480,6 +541,9 @@ const iconBodies = Object.fromEntries(
         item.soort === "Taak" ? item.pijler : item.soort
       ),
       row(el("span", "tl-pop-key", "Status"), status, item.status),
+      ...(item.prio
+        ? [row(el("span", "tl-pop-key", "Prio"), stars(item.prio))]
+        : []),
       ...(item.notitie ? [el("div", "tl-pop-note", item.notitie)] : []),
       ...(item.post ? [postLink(item.post, "tl-pop-post")] : [])
     );
@@ -518,7 +582,8 @@ const iconBodies = Object.fromEntries(
     // Width of one day in pixels, to know how many days a label needs.
     const dayWidth = Math.max(36, (timelineEl.clientWidth - 144) / DAYS);
     // Rough width of a title in pixels (0.8rem bold).
-    const textWidth = (item: Item) => item.taak.length * 6.6 + 44;
+    const textWidth = (item: Item) =>
+      item.taak.length * 6.6 + 44 + (item.prio ?? 0) * 13;
 
     const grid = el("div", "tl");
     grid.style.setProperty("--days", String(DAYS));
@@ -630,6 +695,7 @@ const iconBodies = Object.fromEntries(
         );
         bar.append(icon(kindOf(item)));
         if (!narrow) bar.append(el("span", "tl-text", item.taak));
+        if (!narrow && item.prio) bar.append(stars(item.prio));
         bar.style.gridColumn = `${from + 1} / ${to + 2}`;
         bar.style.gridRow = String(lane + 1);
         const details = [
@@ -701,6 +767,7 @@ const iconBodies = Object.fromEntries(
           );
           const what = el("span", "list-what");
           what.append(icon(kindOf(item)), item.taak);
+          if (item.prio) what.append(stars(item.prio));
           if (item.post) what.append(postLink(item.post, "list-post"));
           row.append(
             el(
@@ -820,6 +887,9 @@ const iconBodies = Object.fromEntries(
     )
     .subscribe();
 
+  // Show the last known planning at once, then fetch the live one.
+  items = saved();
+  if (items.length) render();
   load();
 </script>
 
@@ -1096,6 +1166,24 @@ const iconBodies = Object.fromEntries(
   .tl-text {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  /* Priority stars: small, filled, same colour as the text. */
+  .prio {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 1px;
+    margin-left: 0.35rem;
+  }
+  .prio:empty {
+    display: none;
+  }
+  .prio svg {
+    width: 12px;
+    height: 12px;
+  }
+  .prio svg path {
+    fill: currentColor;
   }
   .ico {
     display: inline-flex;
