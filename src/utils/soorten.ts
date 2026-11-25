@@ -4,19 +4,6 @@ export const SOORTEN: Record<
   string,
   { label: string; blokken: [key: string, label: string][] }
 > = {
-  weekverslag: {
-    label: "Weekverslag",
-    blokken: [
-      ["voortgang", "Voortgang"],
-      ["ux", "UX"],
-      ["design", "Design"],
-      ["dev", "Development"],
-      ["playtest", "Playtest"],
-      ["feedback", "Feedback"],
-      ["ai", "AI-gebruik"],
-      ["volgende", "Volgende stappen"],
-    ],
-  },
   dagboek: {
     label: "Dagboek",
     blokken: [
@@ -57,31 +44,9 @@ export const SOORTEN: Record<
     blokken: [
       ["wat", "Wat was de feedback?"],
       ["reactie", "Wat vinden we ervan?"],
-    ],
-  },
-  meeting: {
-    label: "Meeting",
-    blokken: [
+      // from the old meeting posts
       ["besproken", "Wat bespraken we?"],
       ["beslissingen", "Beslissingen"],
     ],
   },
-  ai: {
-    label: "AI-gebruik",
-    blokken: [
-      ["vraag", "Wat vroegen we?"],
-      ["resultaat", "Wat kregen we?"],
-      ["kritisch", "Wat klopte niet / wat pasten we aan?"],
-    ],
-  },
-  reflectie: {
-    label: "Reflectie",
-    blokken: [
-      ["onderwerp", "Waarover?"],
-      ["goed", "Wat ging goed?"],
-      ["beter", "Wat kan beter?"],
-      ["anders", "Wat doen we vanaf nu anders?"],
-    ],
-  },
-  algemeen: { label: "Algemeen", blokken: [] },
 };

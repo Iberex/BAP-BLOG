@@ -7,7 +7,8 @@ pijler:
   - DEV
 samenvatting: "Uit het coachingmoment met Jynse kwam één duidelijke opdracht:
   maak een deftige planning."
-soort: feedback
+soort:
+  - feedback
 bron: coach
 opdracht: Planning
 actiepunten: >-

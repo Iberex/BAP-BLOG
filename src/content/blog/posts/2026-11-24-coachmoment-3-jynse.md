@@ -3,7 +3,10 @@ title: "Coachmoment 3 met Jynse"
 author: Senne
 soort:
   - feedback
-pijler: []
+pijler:
+  - UX
+  - DESIGN
+  - DEV
 samenvatting: >-
   Notities van het derde coachmoment: blog en planning professioneler maken,
   en wat Ibe en ik de komende weken oppakken, tot en met het testmoment.

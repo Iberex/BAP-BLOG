@@ -1,8 +1,12 @@
 ---
 title: "Van papier tot 3D: een volledige redesign"
 author: Senne
+soort:
+  - research
+  - experiment
 pijler:
   - DESIGN
+  - DEV
 samenvatting: Op de pitch liepen we qua design achter, de Frederik raadde ons
   aan om opnieuw te beginnen vanaf 0, nieuwe research etc. In een paar dagen
   ging ik van tekeningen op papier naar een nieuwe stijl in Figma, vijf levels,
@@ -15,7 +19,8 @@ inhoud:
   - _template: tussentitel
     titel: Pitch
   - _template: tekst
-    tekst: Op de pitch van 20/11 konden we veel techniek tonen, maar visueel zaten
+    tekst:
+      Op de pitch van 20/11 konden we veel techniek tonen, maar visueel zaten
       we vast. Onze stijl was te kinderachtig (zelfs voor kinderen van onze
       doelgroep). De leerkracht raadde ons aan om even alles te schrappen en
       opnieuw te beginnen. We besloten om alle drie over het weekend een
@@ -26,7 +31,8 @@ inhoud:
     bijschrift: De originele stijl vertrok van alle tekeningen op echt papier
   - _template: beeld
     src: /BAP-BLOG/beelden/02-eerste-uitwerking.jpg
-    bijschrift: "Die schetsen werden ingescand en bewerkt tot dit resultaat. Maar
+    bijschrift:
+      "Die schetsen werden ingescand en bewerkt tot dit resultaat. Maar
       dus: te kinderachtig."
   - _template: tussentitel
     titel: De Nieuwe Stijl
@@ -46,12 +52,14 @@ inhoud:
       De definitieve stijl was gezet, dus ik kon beginnen designen.
   - _template: beeld
     src: /BAP-BLOG/beelden/05-testvarianten.jpg
-    bijschrift: Mijn nieuwe stijl na het weekend, verschillende varianten met/zonder
+    bijschrift:
+      Mijn nieuwe stijl na het weekend, verschillende varianten met/zonder
       slagschaduw.
   - _template: tussentitel
     titel: Design 2.0
   - _template: tekst
-    tekst: Vanaf dinsdag was het dan hoog tijd om echt te beginnen aan het design.
+    tekst:
+      Vanaf dinsdag was het dan hoog tijd om echt te beginnen aan het design.
       Ik begon eerst met alle elementen voor de voorgrond af te werken als
       assets, want deze kunnen we hergebruiken voor het hele spel. Toen die
       klaar waren begon ik aan de achtergrond. Om het spel nog iets meer gevoel
@@ -68,7 +76,8 @@ inhoud:
   - _template: tussentitel
     titel: Van 2D naar 3D
   - _template: tekst
-    tekst: "Toen de levels klaar waren met design kwamen we op een idee. We wilden
+    tekst:
+      "Toen de levels klaar waren met design kwamen we op een idee. We wilden
       het al meer diepte geven met de schaduwen, om het meer immersive te maken.
       Maar we konden eigenlijk redelijk makkelijk onze assets exporteren naar
       Blender, en daar de platte SVG's extruden tot 3D assets. Dat ging zeer
@@ -79,7 +88,8 @@ inhoud:
   - _template: tussentitel
     titel: TO DO
   - _template: tekst
-    tekst: "Het grootste deel van de levels zelf is nu gedaan. Morgen werk ik al de
+    tekst:
+      "Het grootste deel van de levels zelf is nu gedaan. Morgen werk ik al de
       rest af, het eindscherm, het tutorial level en het titelscherm. Normaal
       gezien hebben we dan vrijdag alles om (eindelijk) een volledig functionele
       demo te maken. Die demo zouden we zondag gaan testen op Chiro Hemo Opstal.

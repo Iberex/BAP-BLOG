@@ -6,7 +6,8 @@ pijler:
 samenvatting: Gitte vond het concept leuk, maar onze stijl lijkt te veel op
   Snipperclips. We moeten een eigen richting kiezen. En de testmomenten goed
   plannen.
-soort: feedback
+soort:
+  - feedback
 bron: expert desk DESIGN
 opdracht: Design
 blokken:

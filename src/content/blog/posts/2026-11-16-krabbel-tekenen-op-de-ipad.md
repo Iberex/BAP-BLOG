@@ -1,7 +1,8 @@
 ---
 title: "Van iPad naar muur: de eerste tekendemo"
 author: Ibe
-soort: algemeen
+soort:
+  - experiment
 pijler:
   - DEV
   - UX

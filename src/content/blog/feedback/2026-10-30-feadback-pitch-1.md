@@ -9,7 +9,8 @@ samenvatting: "Onze eerste concept-pitch kreeg feedback van medestudenten met
   dezelfde klant. De grootste punten: begin meteen met het concept, kies een
   duidelijke stijl en verhaal, denk na over wat er met de tekeningen gebeurt, en
   maak een eigen deck dat niet als AI aanvoelt."
-soort: feedback
+soort:
+  - feedback
 bron: studenten met dezelfde klant
 opdracht: concept-pitch
 actiepunten: >-

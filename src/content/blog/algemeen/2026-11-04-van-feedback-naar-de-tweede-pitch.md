@@ -9,12 +9,14 @@ samenvatting: "Samenvatting De feedback op onze eerste pitch: speel in op de
   verbeelding van kinderen met een verhaal, en hou de pitch onder 2 minuten. Ons
   basisidee bleef, maar de rest hebben we opnieuw gedaan. Zo is Krabbels
   ontstaan."
-soort: algemeen
+soort:
+  - feedback
 bestanden:
   - {}
 pubDatetime: 2026-10-31T20:00:00Z
 draft: false
 ---
+
 **Wat deden we?**
 
 - Een verhaal bedacht: je getekende figuurtje komt tot leven en wil ontsnappen naar de echte wereld.
@@ -22,4 +24,3 @@ draft: false
 - Drie gebaren: brug, helling en ladder. Levels die oplopen tot een grote kloof.
 - De naam Krabbels, een logo en een stijl van ruitjespapier en krijt.
 - Een nieuwe pitch van 5 dia's in het Nederlands, met een storyboard.
-

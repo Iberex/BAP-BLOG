@@ -1,7 +1,8 @@
 ---
 title: "Mascotte: schets en animaties"
 author: Ibe
-soort: algemeen
+soort:
+  - experiment
 pijler:
   - DESIGN
   - DEV

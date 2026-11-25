@@ -11,7 +11,8 @@ samenvatting: Ons logoproces begon met illustratieve richtingen. Die vertelden
   badge. Uiteindelijk kozen we een eenvoudige blauwe K met twee grote ogen, als
   uitgeknipt papier op ruitjespapier. Zo voelt het logo aan als iets dat een
   kind zelf zou kunnen maken.
-soort: algemeen
+soort:
+  - research
 beelden:
   - src: /BAP-BLOG/beelden/Screenshot 2026-11-09 at 01.35.49.png
     bijschrift: initiele varianten

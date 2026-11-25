@@ -1,9 +1,12 @@
 ---
 title: "Van iPad naar spel"
 author: Ibe
-soort: experiment
+soort:
+  - experiment
+  - playtest
 pijler:
   - DEV
+  - UX
 samenvatting: >-
   De tekendemo en het Femto-spel waren twee losse demo's. Nu hangen ze aan elkaar:
   je tekent op de iPad, je Krabbel loopt in het schaduwspel en verhuist daarna

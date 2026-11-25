@@ -10,7 +10,8 @@ samenvatting: >-
 
 
   Het testmoment is gepland op komende zondag 15/11, see you then x.
-soort: playtest
+soort:
+  - playtest
 pubDatetime: 2026-11-10T19:40:00Z
 draft: false
 ---

@@ -19,7 +19,7 @@ content:
       - name: soort
         label: "Soort post (één of meer)"
         type: select
-        options: { multiple: true, values: [ weekverslag, dagboek, research, experiment, playtest, feedback, meeting, ai, reflectie, algemeen ] }
+        options: { multiple: true, values: [ dagboek, research, experiment, playtest, feedback ] }
       - { name: pijler, label: "Pijler(s)", type: select, options: { multiple: true, values: [ UX, DESIGN, DEV ] } }
       - { name: taak, label: "Taak in de planning (naam, precies zoals in de planning)", type: string }
       - { name: samenvatting, label: "Samenvatting (1-2 zinnen)", type: text }
@@ -79,10 +79,10 @@ content:
               - { name: punten, label: Actiepunt, type: string, list: true }
       - { name: pubDatetime, label: Datum, type: date, required: true, options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" } }
       - { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
-  - name: weekverslag
-    label: "Weekverslagen"
+  - name: dagboek
+    label: "Dagboek"
     type: collection
-    path: src/content/blog/weekverslag
+    path: src/content/blog/dagboek
     filename: "{year}-{month}-{day}-{title}.md"
     view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
     fields:
@@ -107,19 +107,15 @@ content:
         fields:
           - { name: link, label: Vimeo-link, type: string, required: true }
           - { name: titel, label: "Titel (wat zie je?)", type: string }
-      - { name: soort, type: string, hidden: true, default: weekverslag }
+      - { name: soort, type: string, hidden: true, default: dagboek }
       - name: blokken
         label: "Tekst – lege blokken worden niet getoond."
         type: object
         fields:
-          - { name: voortgang, label: "Voortgang: wat is er deze week gebeurd?", type: text }
-          - { name: ux, label: "UX", type: text }
-          - { name: design, label: "Design", type: text }
-          - { name: dev, label: "Development", type: text }
-          - { name: playtest, label: "Playtest: wat testten we en wat zagen we?", type: text }
-          - { name: feedback, label: "Feedback van klant, coach of expert desk", type: text }
-          - { name: ai, label: "AI-gebruik deze week", type: text }
-          - { name: volgende, label: "Volgende stappen", type: text }
+          - { name: gedaan, label: "Wat deden we?", type: text }
+          - { name: geleerd, label: "Wat leerden we?", type: text }
+          - { name: vast, label: "Waar liepen we vast?", type: text }
+          - { name: morgen, label: "Wat doen we morgen?", type: text }
       - &beelden
         name: beelden
         label: "Beelden – schetsen, foto's, screenshots van wat je deed"
@@ -144,32 +140,6 @@ content:
         required: true
         options: { time: true, format: "yyyy-MM-dd'T'HH:mm:ssXXX" }
       - &draft { name: draft, label: "Nog niet publiceren", type: boolean, default: false }
-  - name: dagboek
-    label: "Dagboek"
-    type: collection
-    path: src/content/blog/dagboek
-    filename: "{year}-{month}-{day}-{title}.md"
-    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
-    fields:
-      - *titel
-      - *auteur
-      - *pijler
-      - *samenvatting
-      - *videos
-      - { name: soort, type: string, hidden: true, default: dagboek }
-      - name: blokken
-        label: "Tekst – lege blokken worden niet getoond."
-        type: object
-        fields:
-          - { name: gedaan, label: "Wat deden we?", type: text }
-          - { name: geleerd, label: "Wat leerden we?", type: text }
-          - { name: vast, label: "Waar liepen we vast?", type: text }
-          - { name: morgen, label: "Wat doen we morgen?", type: text }
-      - *beelden
-      - *bestanden
-      - *body
-      - *datum
-      - *draft
   - name: research
     label: "Research"
     type: collection
@@ -286,7 +256,7 @@ content:
       - *datum
       - *draft
   - name: meeting
-    label: "Meetings"
+    label: "Meetings (oud, soort feedback)"
     type: collection
     path: src/content/blog/meeting
     filename: "{year}-{month}-{day}-{title}.md"
@@ -297,7 +267,7 @@ content:
       - *pijler
       - *samenvatting
       - *videos
-      - { name: soort, type: string, hidden: true, default: meeting }
+      - { name: soort, type: string, hidden: true, default: feedback }
       - name: bron
         label: "Met wie?"
         type: select
@@ -314,65 +284,8 @@ content:
       - *body
       - *datum
       - *draft
-  - name: ai
-    label: "AI-gebruik"
-    type: collection
-    path: src/content/blog/ai
-    filename: "{year}-{month}-{day}-{title}.md"
-    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
-    fields:
-      - *titel
-      - *auteur
-      - *pijler
-      - *samenvatting
-      - *videos
-      - { name: soort, type: string, hidden: true, default: ai }
-      - name: ai
-        label: Tool
-        type: object
-        fields:
-          - { name: tool, label: "Welke tool?", type: string }
-          - { name: waarvoor, label: Waarvoor, type: string }
-      - name: blokken
-        label: "Tekst – lege blokken worden niet getoond."
-        type: object
-        fields:
-          - { name: vraag, label: "Wat vroegen we?", type: text }
-          - { name: resultaat, label: "Wat kregen we?", type: text }
-          - { name: kritisch, label: "Wat klopte niet / wat pasten we aan?", type: text }
-      - *beelden
-      - *bestanden
-      - *body
-      - *datum
-      - *draft
-  - name: reflectie
-    label: "Reflecties"
-    type: collection
-    path: src/content/blog/reflectie
-    filename: "{year}-{month}-{day}-{title}.md"
-    view: { fields: [ title, author, pubDatetime, draft ], primary: title, sort: [ pubDatetime ], order: desc }
-    fields:
-      - *titel
-      - *auteur
-      - *pijler
-      - *samenvatting
-      - *videos
-      - { name: soort, type: string, hidden: true, default: reflectie }
-      - name: blokken
-        label: "Tekst – lege blokken worden niet getoond."
-        type: object
-        fields:
-          - { name: onderwerp, label: "Waarover?", type: text }
-          - { name: goed, label: "Wat ging goed?", type: text }
-          - { name: beter, label: "Wat kan beter?", type: text }
-          - { name: anders, label: "Wat doen we vanaf nu anders?", type: text }
-      - *beelden
-      - *bestanden
-      - *body
-      - *datum
-      - *draft
   - name: algemeen
-    label: "Algemeen"
+    label: "Algemeen (oud, soort dagboek)"
     type: collection
     path: src/content/blog/algemeen
     filename: "{year}-{month}-{day}-{title}.md"
@@ -383,7 +296,7 @@ content:
       - *pijler
       - *samenvatting
       - *videos
-      - { name: soort, type: string, hidden: true, default: algemeen }
+      - { name: soort, type: string, hidden: true, default: dagboek }
       - *beelden
       - *bestanden
       - *body

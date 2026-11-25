@@ -9,7 +9,9 @@ samenvatting: Femto Bolt of een gewone webcam met MediaPipe? De Femto geeft een
 videos:
   - link: https://player.mux.com/uZIaea6TvQh01hgU02S57gradbvDouipeML5x65ctYzmo
     titel: "Testopname: Femto Bolt vs MediaPipe"
-soort: experiment
+soort:
+  - experiment
+  - research
 blokken:
   doel: >-
     De Krabbels-demo draait op de Femto Bolt, een dieptecamera. Die werkt goed,

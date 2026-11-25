@@ -7,7 +7,8 @@ pijler:
 samenvatting: "Samenvatting Laura hielp ons met twee duidelijke grenzen:
   kinderen tekenen op een iPad, en printen laten we voorlopig vallen. Eerst een
   sterke basis, uitbreidingen als er tijd over is."
-soort: meeting
+soort:
+  - feedback
 bron: klant
 actiepunten: >-
   - Concept volledig uitwerken met story mode en personages (Senne)

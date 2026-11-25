@@ -1,7 +1,9 @@
 ---
 title: "Eerste test op de muur met de Femto Bolt"
 author: Ibe
-soort: algemeen
+soort:
+  - experiment
+  - playtest
 pijler:
   - DEV
   - UX

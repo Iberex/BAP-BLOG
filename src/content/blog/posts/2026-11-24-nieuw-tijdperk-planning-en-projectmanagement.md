@@ -2,8 +2,7 @@
 title: "Nieuw tijdperk: planning en projectmanagement"
 author: Ibe
 soort:
-  - reflectie
-  - algemeen
+  - dagboek
 pijler:
   - UX
   - DESIGN

@@ -14,7 +14,8 @@ videos:
     titel: Toetsenbord + oled screen
   - link: https://vimeo.com/1245502443
     titel: Toetsenbord led
-soort: experiment
+soort:
+  - experiment
 beelden:
   - src: /BAP-BLOG/beelden/touchdesigner-netwerk.jpg
     bijschrift: Mijn eerste netwerk in TouchDesigner
