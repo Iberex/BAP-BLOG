@@ -24,47 +24,47 @@ actiepunten: >
   Testing-presentatie voorbereiden: onderzoek, huidige staat, inschatting,
   technische uitdagingen, uitleg Phaser
 blokken:
-  wat: >
-    **Wat goed gaat**
+  wat: >-
+    Wat goed gaat:
 
-    * De installatie 's nachts laten draaien en 's ochtends werkt ze nog steeds.
+    De installatie 's nachts laten draaien en 's ochtends werkt ze nog steeds:
+    goed.
 
-    * De camera zit goed. Diepte is niet nodig.
-
-
-    **Aandachtspunten**
-
-    * Kinderen laten tekenen tijdens het spel: test of dat werkt en beslis dan
-    of we het wel of niet doen.
-
-    * Zorg dat de timing goed loopt.
-
-    * Het plat houden wordt heel moeilijk. Het kan wel als we geen silhouet
-    gebruiken, maar een stick man.
+    De camera zit goed. Diepte is niet nodig.
 
 
-    **Phaser en GitHub**
+    Aandachtspunten:
 
-    * Waarom wachten op Phaser? Begin er nu al aan.
+    Kinderen laten tekenen tijdens het spel: test of dat werkt en beslis dan of
+    je het wel of niet doet.
 
-    * Zet een gemeenschappelijke GitHub op. Dit werd sterk benadrukt.
+    Zorg dat de timing goed loopt.
+
+    Ibe wil het plat houden, maar dat wordt heel moeilijk. Het kan wel als je
+    geen silhouet gebruikt, maar een stick man.
 
 
-    **Wat ze verwachten op de testing-presentatie**
+    Phaser en GitHub:
 
-    * Wat hebben jullie onderzocht?
+    Waarom wachten op Phaser? Begin er gewoon nu al aan.
 
-    * Werkt wat jullie nu hebben vloeiend?
+    Zet een gemeenschappelijke GitHub op. Dit werd sterk benadrukt.
 
-    * Een goede inschatting van wat er nog moet gebeuren.
 
-    * Welke technische uitdagingen komen er nog, en kunnen jullie die
-    omschrijven?
+    Wat ze verwachten bij de testing-presentatie:
 
-    * Leg het framework (Phaser) goed uit.
+    Wat hebben jullie onderzocht?
 
-    * Het mag nog niet af zijn, maar we moeten sterk kunnen antwoorden op het
-    hoe en het wat.
+    Werkt wat jullie nu hebben vloeiend?
+
+    Maak een goede inschatting van wat er nog moet gebeuren.
+
+    Welke technische uitdagingen komen er nog, en kunnen jullie die omschrijven?
+
+    Leg het framework (Phaser) goed uit.
+
+    Het is oké als nog niet alles af is, maar jullie moeten wel sterk kunnen
+    antwoorden op de vragen over het hoe en het wat.
   reactie: >
     Fijn dat de stabiliteit en de camera goed zitten: diepte laten vallen maakt
     het een stuk eenvoudiger. Het punt over plat versus silhouet nemen we mee.
